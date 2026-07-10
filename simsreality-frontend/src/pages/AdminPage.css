@@ -1,0 +1,122 @@
+/* TWINOS admin dashboard — 트윈 관리 page-specific styles (shared design system in src/styles/twinDesignSystem.css) */
+
+.twin-table__col-info {
+  width: 22%;
+}
+
+.twin-table__col-category {
+  width: 9%;
+}
+
+.twin-table__col-manager {
+  width: 10%;
+}
+
+.twin-table__col-sync {
+  width: 15%;
+}
+
+.twin-table__col-sensor {
+  width: 9%;
+}
+
+.twin-table__col-status {
+  width: 9%;
+}
+
+.twin-table__col-date {
+  width: 12%;
+}
+
+.twin-table__col-actions {
+  width: 14%;
+}
+
+.twin-table__sensor-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--twin-accent);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+/* Badges (category) */
+.twin-badge--logistics {
+  background: rgba(34, 211, 238, 0.1);
+  border-color: rgba(34, 211, 238, 0.28);
+  color: #5fd3ea;
+}
+
+.twin-badge--manufacture {
+  background: rgba(245, 183, 74, 0.1);
+  border-color: rgba(245, 183, 74, 0.3);
+  color: var(--twin-amber);
+}
+
+/* Status (dot + text) */
+.twin-status--normal {
+  color: var(--twin-green);
+}
+
+.twin-status--normal .twin-status__dot {
+  background: var(--twin-green);
+  box-shadow: 0 0 6px rgba(52, 224, 161, 0.7);
+}
+
+.twin-status--warning {
+  color: var(--twin-amber);
+}
+
+.twin-status--warning .twin-status__dot {
+  background: var(--twin-amber);
+  box-shadow: 0 0 6px rgba(245, 183, 74, 0.7);
+}
+
+.twin-status--offline {
+  color: var(--twin-text-dim);
+}
+
+.twin-status--offline .twin-status__dot {
+  background: var(--twin-text-dim);
+}
+
+/* Sync progress bar */
+.twin-sync {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.twin-sync-bar {
+  flex: 1;
+  min-width: 56px;
+  max-width: 72px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--twin-input-bg);
+  overflow: hidden;
+}
+
+.twin-sync-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.twin-sync-bar__fill--normal {
+  background: var(--twin-green);
+}
+
+.twin-sync-bar__fill--warning {
+  background: var(--twin-amber);
+}
+
+.twin-sync-bar__fill--offline {
+  background: var(--twin-text-dim);
+}
+
+.twin-sync__value {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--twin-text);
+  font-variant-numeric: tabular-nums;
+}

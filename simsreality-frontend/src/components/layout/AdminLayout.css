@@ -1,0 +1,14 @@
+.admin-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100svh;
+  background: var(--twin-bg);
+  color: var(--twin-text);
+  font-family: var(--sans);
+}
+
+.admin-layout__content {
+  flex: 1;
+  min-width: 0;
+  min-height: 100svh;
+}
