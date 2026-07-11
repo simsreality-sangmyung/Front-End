@@ -46,6 +46,8 @@ function AdminEditForm({
   const [description, setDescription] = useState(item.description);
   const [location, setLocation] = useState(item.location);
   const [category, setCategory] = useState<TwinCategory>(item.category);
+  // 담당자/상태/동기화율/센서 수는 Swagger 응답에 없는 필드라 더미 값으로 채워져 있습니다.
+  // 입력 UI는 유지하지만, 제출해도 서버에는 저장되지 않습니다.
   const [manager, setManager] = useState(item.manager);
   const [status, setStatus] = useState<TwinStatus>(item.status);
   const [syncRate, setSyncRate] = useState(String(item.syncRate));

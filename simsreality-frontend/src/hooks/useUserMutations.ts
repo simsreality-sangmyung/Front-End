@@ -5,10 +5,12 @@ import {
   toggleUserSuspend,
   updateUser,
   usersQueryKey,
+  usersStatsQueryKey,
 } from '../api/userApi';
 import type {
   CreateUserInput,
   UpdateUserInput,
+  User,
   UserSearchParams,
 } from '../types/user';
 
@@ -17,13 +19,21 @@ interface CommonOptions {
   onSuccess?: () => void;
 }
 
+function invalidateUserQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  searchParams: UserSearchParams,
+) {
+  queryClient.invalidateQueries({ queryKey: usersStatsQueryKey });
+  queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
+}
+
 export function useCreateUser({ searchParams, onSuccess }: CommonOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CreateUserInput) => createUser(input),
+    mutationFn: (_input: CreateUserInput) => createUser(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
+      invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();
     },
   });
@@ -35,7 +45,7 @@ export function useUpdateUser({ searchParams, onSuccess }: CommonOptions) {
   return useMutation({
     mutationFn: (input: UpdateUserInput) => updateUser(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
+      invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();
     },
   });
@@ -48,9 +58,9 @@ export function useToggleUserSuspend({
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => toggleUserSuspend(id),
+    mutationFn: (user: User) => toggleUserSuspend(user),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
+      invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();
     },
   });
@@ -62,7 +72,7 @@ export function useDeleteUser({ searchParams, onSuccess }: CommonOptions) {
   return useMutation({
     mutationFn: (id: number) => deleteUser(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
+      invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();
     },
   });

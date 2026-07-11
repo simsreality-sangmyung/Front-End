@@ -1,0 +1,66 @@
+.my-twins-page {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--twin-bg);
+  color: var(--twin-text);
+  font-family: var(--sans);
+  box-sizing: border-box;
+}
+
+.my-twins-page__card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.my-twins-page__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+  border-radius: var(--twin-radius-md);
+  border: 1px solid var(--twin-accent-border);
+  background: var(--twin-accent-bg);
+  color: var(--twin-accent);
+}
+
+.my-twins-page__eyebrow {
+  margin: 0 0 6px;
+  color: var(--twin-accent);
+  font-family: var(--twin-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.my-twins-page__title {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--twin-text);
+}
+
+.my-twins-page__message {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--twin-text);
+}
+
+.my-twins-page__submessage {
+  margin: 0 0 28px;
+  font-size: 12.5px;
+  color: var(--twin-text-muted);
+  line-height: 1.6;
+}
+
+.my-twins-page__back-btn {
+  width: 100%;
+  text-decoration: none;
+}

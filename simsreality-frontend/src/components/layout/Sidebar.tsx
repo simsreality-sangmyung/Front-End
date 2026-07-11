@@ -1,5 +1,5 @@
 import { Box, Globe, LayoutGrid, LogOut, Settings, Users } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
@@ -13,9 +13,13 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
-        <span className="sidebar__logo-icon">
+        <Link
+          to="/landing"
+          className="sidebar__logo-icon"
+          aria-label="메인 랜딩페이지로 이동"
+        >
           <Globe size={14} strokeWidth={2} />
-        </span>
+        </Link>
         <span className="sidebar__logo-text">
           <span className="sidebar__logo-text--accent">TWIN</span>
           <span className="sidebar__logo-text--muted">OS</span>
@@ -40,10 +44,10 @@ function Sidebar() {
         ))}
       </nav>
 
-      <div className="sidebar__footer">
+      <NavLink to="/my-twins" className="sidebar__footer">
         <LogOut size={12} strokeWidth={2} className="sidebar__footer-icon" />
         <span>사용자 화면으로</span>
-      </div>
+      </NavLink>
     </aside>
   );
 }

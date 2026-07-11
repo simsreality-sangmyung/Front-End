@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminItemsQueryKey, createAdminItem } from '../api/adminApi';
+import {
+  adminItemsQueryKey,
+  adminItemsStatsQueryKey,
+  createAdminItem,
+} from '../api/adminApi';
 import type { AdminItemSearchParams, CreateAdminItemInput } from '../types/adminItem';
 
 interface UseCreateAdminItemOptions {
@@ -22,6 +26,7 @@ export function useCreateAdminItem({
       queryClient.invalidateQueries({
         queryKey: adminItemsQueryKey(searchParams),
       });
+      queryClient.invalidateQueries({ queryKey: adminItemsStatsQueryKey });
       onSuccess?.();
     },
   });

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   adminItemsQueryKey,
+  adminItemsStatsQueryKey,
   deleteAdminItem,
   updateAdminItem,
 } from '../api/adminApi';
@@ -30,6 +31,7 @@ export function useUpdateAdminItem({
       queryClient.invalidateQueries({
         queryKey: adminItemsQueryKey(searchParams),
       });
+      queryClient.invalidateQueries({ queryKey: adminItemsStatsQueryKey });
       onProgress(null);
       onSuccess?.();
     },
@@ -56,6 +58,7 @@ export function useDeleteAdminItem({
       queryClient.invalidateQueries({
         queryKey: adminItemsQueryKey(searchParams),
       });
+      queryClient.invalidateQueries({ queryKey: adminItemsStatsQueryKey });
       onSuccess?.();
     },
   });

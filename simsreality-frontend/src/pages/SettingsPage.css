@@ -5,6 +5,17 @@
   font-weight: 600;
 }
 
+.settings-page__profile-status {
+  margin: 0 0 14px;
+  color: var(--twin-text-dim);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.settings-page__profile-status--error {
+  color: var(--twin-danger, #f26d6d);
+}
+
 .settings-page__sections {
   display: flex;
   flex-direction: column;

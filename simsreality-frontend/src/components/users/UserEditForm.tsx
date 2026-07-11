@@ -12,6 +12,7 @@ import {
 interface UserEditFormProps {
   user: User;
   isSubmitting: boolean;
+  submitError?: string | null;
   onSubmit: (input: {
     id: number;
     role: UserRole;
@@ -24,6 +25,7 @@ interface UserEditFormProps {
 function UserEditForm({
   user,
   isSubmitting,
+  submitError,
   onSubmit,
   onCancel,
 }: UserEditFormProps) {
@@ -100,6 +102,8 @@ function UserEditForm({
             </select>
           </label>
         </div>
+
+        {submitError && <p className="twin-form__error">{submitError}</p>}
 
         <div className="twin-form__actions">
           <button

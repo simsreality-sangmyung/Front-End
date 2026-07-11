@@ -10,6 +10,8 @@ export const USER_PLAN_OPTIONS: UserPlan[] = ['스탠다드', '프로', '엔터�
 
 export const USER_STATUS_OPTIONS: UserStatus[] = ['활성', '정지', '대기'];
 
+import type { AccountRole, AccountStatus } from './account';
+
 export interface User {
   id: number;
   name: string;
@@ -20,12 +22,27 @@ export interface User {
   status: UserStatus;
   joinedAt: string;
   lastLoginAt: string;
+  /** 원본 API role — 수정/권한 변경 시 사용 */
+  apiRole?: AccountRole;
+  /** 원본 API status — 수정 시 사용 */
+  apiStatus?: AccountStatus;
 }
 
 export interface UserSearchParams {
   keyword?: string;
   role?: UserRole | 'all';
   status?: UserStatus | 'all';
+  page?: number;
+  size?: number;
+  sort?: UserSortOption;
+}
+
+export interface UsersPageResult {
+  users: User[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 export type UserSortOption =

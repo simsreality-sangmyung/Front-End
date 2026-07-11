@@ -9,6 +9,7 @@ interface AdminItemTableProps {
   items: AdminItem[];
   isLoading: boolean;
   isError: boolean;
+  errorMessage?: string | null;
   isDeleting: boolean;
   deletingId: number | null;
   sort: AdminItemSortOption;
@@ -66,6 +67,7 @@ function AdminItemTable({
   items,
   isLoading,
   isError,
+  errorMessage,
   isDeleting,
   deletingId,
   sort,
@@ -90,7 +92,7 @@ function AdminItemTable({
     return (
       <section className="twin-card twin-table-card">
         <p className="twin-table-status twin-table-status--error">
-          목록을 불러오지 못했습니다.
+          {errorMessage ?? '목록을 불러오지 못했습니다.'}
         </p>
       </section>
     );

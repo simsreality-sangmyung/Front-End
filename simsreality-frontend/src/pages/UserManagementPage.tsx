@@ -13,9 +13,9 @@ import {
   useToggleUserSuspend,
   useUpdateUser,
 } from '../hooks/useUserMutations';
-import { useUsers } from '../hooks/useUsers';
+import { useUsers, useUsersStats } from '../hooks/useUsers';
 import type { User, UserSearchParams, UserSortOption } from '../types/user';
-import { sortUsers } from '../utils/sortUsers';
+import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/twinDesignSystem.css';
 import './UserManagementPage.css';
 
@@ -29,13 +29,27 @@ function UserManagementPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [mutatingId, setMutatingId] = useState<number | null>(null);
 
-  const { data: allUsers = [] } = useUsers({});
-  const { data = [], isLoading, isError } = useUsers(searchParams);
+  const listParams: UserSearchParams = {
+    ...searchParams,
+    page: currentPage - 1,
+    size: PAGE_SIZE,
+    sort,
+  };
 
-  const sortedUsers = sortUsers(data, sort);
-  const totalPages = Math.max(1, Math.ceil(sortedUsers.length / PAGE_SIZE));
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const paginatedUsers = sortedUsers.slice(start, start + PAGE_SIZE);
+  const {
+    data: pageData,
+    isLoading,
+    isError,
+    error: listError,
+  } = useUsers(listParams);
+  const { data: statsUsers = [] } = useUsersStats();
+
+  const users = pageData?.users ?? [];
+  const totalPages = Math.max(1, pageData?.totalPages ?? 1);
+  const totalCount = pageData?.totalElements ?? 0;
+  const listErrorMessage = isError
+    ? getApiErrorMessage(listError, '사용자 목록을 불러오지 못했습니다.')
+    : null;
 
   const handleSearch = useCallback((params: UserSearchParams) => {
     setSearchParams(params);
@@ -48,36 +62,64 @@ function UserManagementPage() {
   }, []);
 
   const createMutation = useCreateUser({
-    searchParams,
+    searchParams: listParams,
     onSuccess: () => setShowInviteForm(false),
   });
 
   const updateMutation = useUpdateUser({
-    searchParams,
+    searchParams: listParams,
     onSuccess: () => setEditingUser(null),
   });
 
   const suspendMutation = useToggleUserSuspend({
-    searchParams,
+    searchParams: listParams,
     onSuccess: () => setMutatingId(null),
   });
 
   const deleteMutation = useDeleteUser({
-    searchParams,
+    searchParams: listParams,
     onSuccess: () => setMutatingId(null),
   });
 
   const isMutating =
     suspendMutation.isPending || deleteMutation.isPending;
 
+  const createErrorMessage = createMutation.isError
+    ? getApiErrorMessage(
+        createMutation.error,
+        '사용자 초대에 실패했습니다.',
+      )
+    : null;
+
+  const updateErrorMessage = updateMutation.isError
+    ? getApiErrorMessage(updateMutation.error, '사용자 수정에 실패했습니다.')
+    : null;
+
+  const deleteErrorMessage = deleteMutation.isError
+    ? getApiErrorMessage(deleteMutation.error, '사용자 삭제에 실패했습니다.')
+    : null;
+
+  const suspendErrorMessage = suspendMutation.isError
+    ? getApiErrorMessage(
+        suspendMutation.error,
+        '사용자 상태 변경에 실패했습니다.',
+      )
+    : null;
+
   const handleInviteClick = () => {
     setEditingUser(null);
-    setShowInviteForm((prev) => !prev);
+    setShowInviteForm(true);
   };
+
+  const handleCloseInviteModal = useCallback(() => {
+    if (!createMutation.isPending) {
+      setShowInviteForm(false);
+    }
+  }, [createMutation.isPending]);
 
   const handleToggleSuspend = (user: User) => {
     setMutatingId(user.id);
-    suspendMutation.mutate(user.id, {
+    suspendMutation.mutate(user, {
       onError: () => setMutatingId(null),
     });
   };
@@ -118,24 +160,26 @@ function UserManagementPage() {
           disabled={createMutation.isPending || updateMutation.isPending}
         >
           <Plus size={14} strokeWidth={2.5} />
-          {showInviteForm ? '초대 닫기' : '사용자 초대'}
+          사용자 초대
         </button>
       </header>
 
-      <UserStatsCards users={allUsers} />
+      <UserStatsCards users={statsUsers} />
 
       <UserSearchForm initialParams={searchParams} onSearch={handleSearch} />
 
       {showInviteForm && (
-        <UserInviteForm
-          isSubmitting={createMutation.isPending}
-          onSubmit={(input) => createMutation.mutate(input)}
-          onCancel={() => {
-            if (!createMutation.isPending) {
-              setShowInviteForm(false);
-            }
-          }}
-        />
+        <AdminModal
+          onClose={handleCloseInviteModal}
+          isCloseDisabled={createMutation.isPending}
+        >
+          <UserInviteForm
+            isSubmitting={createMutation.isPending}
+            submitError={createErrorMessage}
+            onSubmit={(input) => createMutation.mutate(input)}
+            onCancel={handleCloseInviteModal}
+          />
+        </AdminModal>
       )}
 
       {editingUser && (
@@ -151,35 +195,27 @@ function UserManagementPage() {
             key={editingUser.id}
             user={editingUser}
             isSubmitting={updateMutation.isPending}
+            submitError={updateErrorMessage}
             onSubmit={(input) => updateMutation.mutate(input)}
             onCancel={() => setEditingUser(null)}
           />
         </AdminModal>
       )}
 
-      {createMutation.isError && (
-        <p className="admin-page__error twin-card">
-          초대에 실패했습니다. 다시 시도해주세요.
-        </p>
+      {suspendErrorMessage && (
+        <p className="admin-page__error twin-card">{suspendErrorMessage}</p>
       )}
 
-      {updateMutation.isError && (
-        <p className="admin-page__error twin-card">
-          수정에 실패했습니다. 다시 시도해주세요.
-        </p>
-      )}
-
-      {deleteMutation.isError && (
-        <p className="admin-page__error twin-card">
-          삭제에 실패했습니다. 다시 시도해주세요.
-        </p>
+      {deleteErrorMessage && (
+        <p className="admin-page__error twin-card">{deleteErrorMessage}</p>
       )}
 
       <UserTable
-        users={paginatedUsers}
-        totalCount={sortedUsers.length}
+        users={users}
+        totalCount={totalCount}
         isLoading={isLoading}
         isError={isError}
+        errorMessage={listErrorMessage}
         isMutating={isMutating}
         mutatingId={mutatingId}
         sort={sort}

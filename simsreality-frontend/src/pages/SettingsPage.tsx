@@ -1,15 +1,37 @@
 import { Bell, ChevronRight, Globe, Moon, Save, Shield, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import ProfileFields from '../components/settings/ProfileFields';
 import SettingsRow from '../components/settings/SettingsRow';
 import SettingsSection from '../components/settings/SettingsSection';
 import SettingsToggle from '../components/settings/SettingsToggle';
+import { useMyProfile } from '../hooks/useMyProfile';
+import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/twinDesignSystem.css';
 import './SettingsPage.css';
 
+// GET /api/members/me 조회 전/실패 시 프로필 입력란에 사용하는 기존 더미 값
+// (Swagger에 없는 "소속 기관"도 이 기본값에 포함되어 있습니다)
+const DUMMY_PROFILE = {
+  id: 0,
+  name: '정태웅',
+  email: 'taewung.jung@example.com',
+  role: 'USER' as const,
+  ssoType: 'KAKAO' as const,
+};
+
 function SettingsPage() {
-  const [name, setName] = useState('정태웅');
-  const [email, setEmail] = useState('taewung.jung@example.com');
-  const [organization, setOrganization] = useState('HN Inc.');
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    error: profileError,
+  } = useMyProfile();
+
+  const profileErrorMessage = isProfileError
+    ? getApiErrorMessage(profileError, '내 정보를 불러오지 못했습니다.', {
+        forbiddenMessage: '내 정보를 조회할 권한이 없습니다.',
+      })
+    : null;
 
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(false);
@@ -59,30 +81,20 @@ function SettingsPage() {
 
       <div className="settings-page__sections">
         <SettingsSection icon={User} eyebrow="PROFILE" title="프로필">
-          <SettingsRow label="이름">
-            <input
-              type="text"
-              className="twin-control settings-row__input"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </SettingsRow>
-          <SettingsRow label="이메일" description="알림 수신에 사용됩니다">
-            <input
-              type="email"
-              className="twin-control settings-row__input"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </SettingsRow>
-          <SettingsRow label="소속 기관">
-            <input
-              type="text"
-              className="twin-control settings-row__input"
-              value={organization}
-              onChange={(event) => setOrganization(event.target.value)}
-            />
-          </SettingsRow>
+          {isProfileLoading ? (
+            <p className="settings-page__profile-status">
+              내 정보를 불러오는 중...
+            </p>
+          ) : null}
+          {profileErrorMessage ? (
+            <p className="settings-page__profile-status settings-page__profile-status--error">
+              {profileErrorMessage}
+            </p>
+          ) : null}
+          <ProfileFields
+            key={profile ? profile.id : 'dummy'}
+            profile={profile ?? DUMMY_PROFILE}
+          />
         </SettingsSection>
 
         <SettingsSection icon={Bell} eyebrow="NOTIFICATIONS" title="알림">

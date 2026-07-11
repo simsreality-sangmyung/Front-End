@@ -7,7 +7,7 @@ import AdminPagination from '../components/admin/AdminPagination';
 import AdminSearchForm from '../components/admin/AdminSearchForm';
 import StatsCards from '../components/admin/StatsCards';
 import TwinRegisterModal from '../components/twin/TwinRegisterModal';
-import { useAdminItems } from '../hooks/useAdminItems';
+import { useAdminItems, useAdminItemsStats } from '../hooks/useAdminItems';
 import {
   useDeleteAdminItem,
   useUpdateAdminItem,
@@ -40,20 +40,37 @@ function AdminPage() {
     string | null
   >(null);
 
-  const { data: allItems = [] } = useAdminItems({});
-  const { data = [], isLoading, isError } = useAdminItems(searchParams);
-  const sortedItems = useMemo(
-    () => sortAdminItems(data, sort),
-    [data, sort],
+  const listParams = useMemo<AdminItemSearchParams>(
+    () => ({
+      ...searchParams,
+      sort,
+      page: currentPage - 1,
+      size: PAGE_SIZE,
+    }),
+    [searchParams, sort, currentPage],
   );
 
-  const totalPages = Math.max(1, Math.ceil(sortedItems.length / PAGE_SIZE));
+  const { data: statsData } = useAdminItemsStats();
+  const {
+    data: pageData,
+    isLoading,
+    isError,
+    error: listError,
+  } = useAdminItems(listParams);
 
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return sortedItems.slice(start, start + PAGE_SIZE);
-  }, [sortedItems, currentPage]);
+  const totalPages = Math.max(1, pageData?.totalPages ?? 1);
 
+  const items = useMemo(() => pageData?.items ?? [], [pageData]);
+  // 서버는 등록일 기준으로만 정렬 가능하므로, 동기화율 정렬은 클라이언트에서 한 번 더 시도합니다
+  // (단, syncRate 데이터 자체가 서버에 없어 실질적으로는 변화가 없습니다).
+  const sortedItems = useMemo(() => sortAdminItems(items, sort), [items, sort]);
+
+  const listErrorMessage = isError
+    ? getApiErrorMessage(listError, '목록을 불러오지 못했습니다.')
+    : null;
+
+  // 필터/검색 변경으로 totalPages가 줄어들어 currentPage가 범위를 벗어나는 경우를 보정합니다.
+  // (기존 mock 버전에도 있던 패턴으로, 이 프로젝트에서 사전에 허용된 lint 경고입니다.)
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
@@ -79,7 +96,7 @@ function AdminPage() {
   }, []);
 
   const createMutation = useCreateAdminItem({
-    searchParams,
+    searchParams: listParams,
     onProgress: setUploadProgress,
     onSuccess: () => {
       setUploadProgress(null);
@@ -93,19 +110,27 @@ function AdminPage() {
     : null;
 
   const updateMutation = useUpdateAdminItem({
-    searchParams,
+    searchParams: listParams,
     onProgress: setEditUploadProgress,
     onSuccess: () => {
       setEditingItem(null);
     },
   });
 
+  const updateErrorMessage = updateMutation.isError
+    ? getApiErrorMessage(updateMutation.error, '수정에 실패했습니다.')
+    : null;
+
   const deleteMutation = useDeleteAdminItem({
-    searchParams,
+    searchParams: listParams,
     onSuccess: () => {
       setDeletingId(null);
     },
   });
+
+  const deleteErrorMessage = deleteMutation.isError
+    ? getApiErrorMessage(deleteMutation.error, '삭제에 실패했습니다.')
+    : null;
 
   const handleCloseEditModal = useCallback(() => {
     if (!updateMutation.isPending) {
@@ -183,7 +208,10 @@ function AdminPage() {
         </button>
       </header>
 
-      <StatsCards items={allItems} />
+      <StatsCards
+        totalElements={statsData?.totalElements ?? 0}
+        items={statsData?.items ?? []}
+      />
 
       <AdminSearchForm initialParams={searchParams} onSearch={handleSearch} />
 
@@ -217,22 +245,19 @@ function AdminPage() {
         <p className="admin-page__success twin-card">{createSuccessMessage}</p>
       )}
 
-      {updateMutation.isError && (
-        <p className="admin-page__error twin-card">
-          수정에 실패했습니다. 다시 시도해주세요.
-        </p>
+      {updateErrorMessage && (
+        <p className="admin-page__error twin-card">{updateErrorMessage}</p>
       )}
 
-      {deleteMutation.isError && (
-        <p className="admin-page__error twin-card">
-          삭제에 실패했습니다. 다시 시도해주세요.
-        </p>
+      {deleteErrorMessage && (
+        <p className="admin-page__error twin-card">{deleteErrorMessage}</p>
       )}
 
       <AdminItemTable
-        items={paginatedItems}
+        items={sortedItems}
         isLoading={isLoading}
         isError={isError}
+        errorMessage={listErrorMessage}
         isDeleting={deleteMutation.isPending}
         deletingId={deletingId}
         sort={sort}

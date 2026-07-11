@@ -1,42 +1,48 @@
-import { Activity, AlertTriangle, Box, WifiOff } from 'lucide-react';
+import { AlertTriangle, Box, WifiOff, Activity } from 'lucide-react';
 import type { AdminItem } from '../../types/adminItem';
 
 interface StatsCardsProps {
+  /** 서버가 반환하는 정확한 전체 개수 (totalElements) */
+  totalElements: number;
+  /**
+   * 통계 집계용으로 조회된 항목 목록 (최대 1000건).
+   * status는 서버 데이터가 아니라 더미 값(src/utils/adminItemMapper.ts)이므로,
+   * 정상/경고/오프라인 카드 수치도 실제 운영 상태가 아닌 더미 집계입니다.
+   */
   items: AdminItem[];
 }
 
-function StatsCards({ items }: StatsCardsProps) {
-  const total = items.length;
-  const normal = items.filter((item) => item.status === '정상').length;
-  const warning = items.filter((item) => item.status === '경고').length;
-  const offline = items.filter((item) => item.status === '오프라인').length;
+function StatsCards({ totalElements, items }: StatsCardsProps) {
+  const normalCount = items.filter((item) => item.status === '정상').length;
+  const warningCount = items.filter((item) => item.status === '경고').length;
+  const offlineCount = items.filter((item) => item.status === '오프라인').length;
 
   const cards = [
     {
       key: 'total',
       label: '전체 트윈',
-      value: total,
+      value: totalElements,
       icon: Box,
       tone: 'accent' as const,
     },
     {
       key: 'normal',
       label: '정상 운영',
-      value: normal,
+      value: normalCount,
       icon: Activity,
       tone: 'green' as const,
     },
     {
       key: 'warning',
       label: '경고',
-      value: warning,
+      value: warningCount,
       icon: AlertTriangle,
       tone: 'amber' as const,
     },
     {
       key: 'offline',
       label: '오프라인',
-      value: offline,
+      value: offlineCount,
       icon: WifiOff,
       tone: 'rose' as const,
     },

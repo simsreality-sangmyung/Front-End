@@ -32,6 +32,13 @@
   border: 1px solid var(--twin-accent-border);
   background: var(--twin-accent-bg);
   color: var(--twin-accent);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar__logo-icon:hover {
+  background: var(--twin-accent-border);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.45);
 }
 
 .sidebar__logo-text {
@@ -110,6 +117,18 @@
   background: rgba(255, 255, 255, 0.04);
   color: var(--twin-text-dim);
   font-size: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar__footer:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--twin-text-muted);
+}
+
+.sidebar__footer:hover .sidebar__footer-icon {
+  color: var(--twin-text-muted);
 }
 
 .sidebar__footer-icon {

@@ -8,6 +8,7 @@ import {
 
 interface UserInviteFormProps {
   isSubmitting: boolean;
+  submitError?: string | null;
   onSubmit: (input: {
     name: string;
     email: string;
@@ -19,6 +20,7 @@ interface UserInviteFormProps {
 
 function UserInviteForm({
   isSubmitting,
+  submitError,
   onSubmit,
   onCancel,
 }: UserInviteFormProps) {
@@ -48,7 +50,7 @@ function UserInviteForm({
   };
 
   return (
-    <section className="twin-card twin-form">
+    <section className="twin-form twin-form--in-modal">
       <div className="twin-form__header">
         <h2>사용자 초대</h2>
         <p className="twin-form__description">
@@ -116,6 +118,7 @@ function UserInviteForm({
         </div>
 
         {error && <p className="twin-form__error">{error}</p>}
+        {submitError && <p className="twin-form__error">{submitError}</p>}
 
         <div className="twin-form__actions">
           <button

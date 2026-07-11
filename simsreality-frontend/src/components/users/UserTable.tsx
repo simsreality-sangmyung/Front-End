@@ -6,6 +6,7 @@ interface UserTableProps {
   totalCount: number;
   isLoading: boolean;
   isError: boolean;
+  errorMessage?: string | null;
   isMutating: boolean;
   mutatingId: number | null;
   sort: UserSortOption;
@@ -60,6 +61,7 @@ function UserTable({
   totalCount,
   isLoading,
   isError,
+  errorMessage,
   isMutating,
   mutatingId,
   sort,
@@ -80,7 +82,7 @@ function UserTable({
     return (
       <section className="twin-card twin-table-card">
         <p className="twin-table-status twin-table-status--error">
-          목록을 불러오지 못했습니다.
+          {errorMessage ?? '목록을 불러오지 못했습니다.'}
         </p>
       </section>
     );
