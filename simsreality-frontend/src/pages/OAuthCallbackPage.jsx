@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { CheckCircle, Globe } from 'lucide-react';
 import { refreshAccessToken } from '../api/auth/refresh';
 import { clearAccessToken } from '../api/auth/tokenStore';
+import { markAppEntered } from '../navigation/sessionEntry';
 
 const steps = ['인증 요청 중...', '계정 확인 중...', '세션 생성 중...', '완료'];
 
@@ -26,7 +27,10 @@ function OAuthCallbackPage() {
       .then(() => {
         setStep(3);
         setDone(true);
-        setTimeout(() => navigate('/', { replace: true }), 700);
+        setTimeout(() => {
+          markAppEntered();
+          navigate('/main', { replace: true });
+        }, 700);
       })
       .catch(() => {
         clearAccessToken();
