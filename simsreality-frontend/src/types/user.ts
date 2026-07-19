@@ -1,37 +1,28 @@
+import type { AccountRole } from './account';
+
 export type UserRole = '사용자' | '관리자';
-
-export type UserPlan = '스탠다드' | '프로' | '엔터프라이즈';
-
-export type UserStatus = '활성' | '정지' | '대기';
 
 export const USER_ROLE_OPTIONS: UserRole[] = ['사용자', '관리자'];
 
-export const USER_PLAN_OPTIONS: UserPlan[] = ['스탠다드', '프로', '엔터프라이즈'];
-
-export const USER_STATUS_OPTIONS: UserStatus[] = ['활성', '정지', '대기'];
-
-import type { AccountRole, AccountStatus } from './account';
-
+/**
+ * 계정 API 응답에서 status가 제거되어 정지/대기 등 상태를 실제로 구분할 수 없습니다.
+ */
 export interface User {
   id: number;
   name: string;
   email: string;
   role: UserRole;
-  plan: UserPlan;
-  twinCount: number;
-  status: UserStatus;
   joinedAt: string;
-  lastLoginAt: string;
   /** 원본 API role — 수정/권한 변경 시 사용 */
   apiRole?: AccountRole;
-  /** 원본 API status — 수정 시 사용 */
-  apiStatus?: AccountStatus;
 }
 
+/**
+ * 검색은 email 또는 id 파라미터를 사용합니다 (loginId 기반 검색은 제거됨).
+ * keyword가 숫자로만 구성되면 id로, 그 외에는 email로 전송합니다.
+ */
 export interface UserSearchParams {
   keyword?: string;
-  role?: UserRole | 'all';
-  status?: UserStatus | 'all';
   page?: number;
   size?: number;
   sort?: UserSortOption;
@@ -45,24 +36,19 @@ export interface UsersPageResult {
   totalPages: number;
 }
 
-export type UserSortOption =
-  | 'joined-desc'
-  | 'joined-asc'
-  | 'twin-desc'
-  | 'twin-asc';
+export type UserSortOption = 'joined-desc' | 'joined-asc';
 
 export interface CreateUserInput {
   name: string;
   email: string;
   role: UserRole;
-  plan: UserPlan;
 }
 
+/** PUT /api/admin/accounts/{id}는 name만 받으므로, role은 별도의 PATCH .../role 호출로 처리합니다. */
 export interface UpdateUserInput {
   id: number;
+  name: string;
   role: UserRole;
-  plan: UserPlan;
-  status: UserStatus;
 }
 
 export function getUserInitials(email: string): string {

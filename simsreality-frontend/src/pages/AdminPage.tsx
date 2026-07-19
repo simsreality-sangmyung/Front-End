@@ -5,9 +5,8 @@ import AdminModal from '../components/admin/AdminModal';
 import AdminItemTable from '../components/admin/AdminItemTable';
 import AdminPagination from '../components/admin/AdminPagination';
 import AdminSearchForm from '../components/admin/AdminSearchForm';
-import StatsCards from '../components/admin/StatsCards';
 import TwinRegisterModal from '../components/twin/TwinRegisterModal';
-import { useAdminItems, useAdminItemsStats } from '../hooks/useAdminItems';
+import { useAdminItems } from '../hooks/useAdminItems';
 import {
   useDeleteAdminItem,
   useUpdateAdminItem,
@@ -17,7 +16,6 @@ import type {
   AdminItem,
   AdminItemSearchParams,
   AdminItemSortOption,
-  CreateUploadProgress,
 } from '../types/adminItem';
 import { getApiErrorMessage } from '../utils/apiError';
 import { sortAdminItems } from '../utils/sortAdminItems';
@@ -34,8 +32,6 @@ function AdminPage() {
   const [editingItem, setEditingItem] = useState<AdminItem | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [editUploadProgress, setEditUploadProgress] =
-    useState<CreateUploadProgress | null>(null);
   const [createSuccessMessage, setCreateSuccessMessage] = useState<
     string | null
   >(null);
@@ -50,7 +46,6 @@ function AdminPage() {
     [searchParams, sort, currentPage],
   );
 
-  const { data: statsData } = useAdminItemsStats();
   const {
     data: pageData,
     isLoading,
@@ -61,8 +56,8 @@ function AdminPage() {
   const totalPages = Math.max(1, pageData?.totalPages ?? 1);
 
   const items = useMemo(() => pageData?.items ?? [], [pageData]);
-  // 서버는 등록일 기준으로만 정렬 가능하므로, 동기화율 정렬은 클라이언트에서 한 번 더 시도합니다
-  // (단, syncRate 데이터 자체가 서버에 없어 실질적으로는 변화가 없습니다).
+  // 서버가 등록일 기준(newest/oldest)으로만 응답을 정렬해주므로, 같은 기준으로 클라이언트
+  // 에서도 한 번 더 정렬해 정확도를 보장합니다.
   const sortedItems = useMemo(() => sortAdminItems(items, sort), [items, sort]);
 
   const listErrorMessage = isError
@@ -111,7 +106,6 @@ function AdminPage() {
 
   const updateMutation = useUpdateAdminItem({
     searchParams: listParams,
-    onProgress: setEditUploadProgress,
     onSuccess: () => {
       setEditingItem(null);
     },
@@ -135,7 +129,6 @@ function AdminPage() {
   const handleCloseEditModal = useCallback(() => {
     if (!updateMutation.isPending) {
       setEditingItem(null);
-      setEditUploadProgress(null);
     }
   }, [updateMutation.isPending]);
 
@@ -150,7 +143,6 @@ function AdminPage() {
   const handleEdit = (item: AdminItem) => {
     setShowCreateForm(false);
     setUploadProgress(null);
-    setEditUploadProgress(null);
     setEditingItem(item);
   };
 
@@ -167,7 +159,6 @@ function AdminPage() {
       onSuccess: () => {
         if (editingItem?.id === item.id) {
           setEditingItem(null);
-          setEditUploadProgress(null);
         }
       },
       onError: () => {
@@ -185,7 +176,6 @@ function AdminPage() {
 
   const handleRegisterClick = () => {
     setEditingItem(null);
-    setEditUploadProgress(null);
     setCreateSuccessMessage(null);
     setShowCreateForm(true);
   };
@@ -208,11 +198,6 @@ function AdminPage() {
         </button>
       </header>
 
-      <StatsCards
-        totalElements={statsData?.totalElements ?? 0}
-        items={statsData?.items ?? []}
-      />
-
       <AdminSearchForm initialParams={searchParams} onSearch={handleSearch} />
 
       {showCreateForm && (
@@ -234,7 +219,6 @@ function AdminPage() {
             key={editingItem.id}
             item={editingItem}
             isSubmitting={updateMutation.isPending}
-            uploadProgress={editUploadProgress}
             onSubmit={(input) => updateMutation.mutate(input)}
             onCancel={handleCloseEditModal}
           />

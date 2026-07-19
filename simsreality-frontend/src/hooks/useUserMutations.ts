@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  createUser,
   deleteUser,
-  toggleUserSuspend,
   updateUser,
   usersQueryKey,
   usersStatsQueryKey,
@@ -10,7 +8,6 @@ import {
 import type {
   CreateUserInput,
   UpdateUserInput,
-  User,
   UserSearchParams,
 } from '../types/user';
 
@@ -27,11 +24,15 @@ function invalidateUserQueries(
   queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
 }
 
+/**
+ * 사용자 초대 API가 아직 명세에 없어, 실제 서버 요청 없이 프론트 데모용으로
+ * 성공 처리합니다(모달 닫힘/완료 안내는 화면에서 Figma와 동일하게 보여줍니다).
+ */
 export function useCreateUser({ searchParams, onSuccess }: CommonOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (_input: CreateUserInput) => createUser(),
+    mutationFn: (_input: CreateUserInput) => Promise.resolve(),
     onSuccess: () => {
       invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();
@@ -44,21 +45,6 @@ export function useUpdateUser({ searchParams, onSuccess }: CommonOptions) {
 
   return useMutation({
     mutationFn: (input: UpdateUserInput) => updateUser(input),
-    onSuccess: () => {
-      invalidateUserQueries(queryClient, searchParams);
-      onSuccess?.();
-    },
-  });
-}
-
-export function useToggleUserSuspend({
-  searchParams,
-  onSuccess,
-}: CommonOptions) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (user: User) => toggleUserSuspend(user),
     onSuccess: () => {
       invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();

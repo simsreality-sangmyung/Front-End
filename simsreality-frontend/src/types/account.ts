@@ -1,21 +1,16 @@
-/** Swagger: AccountResponse — 계정 관리 목록/검색 응답 항목 */
+/**
+ * 계정 관리 API (재배포 이후 명세).
+ * GET /api/admin/accounts, /api/admin/accounts/search 응답에서
+ * lastLoginAt / ssoType / loginId / status 필드가 제거되었습니다.
+ */
 export type AccountRole = 'SUPER' | 'ADMIN' | 'USER' | 'PENDING';
-
-export type AccountStatus = 'ACTIVE' | 'DELETED';
-
-export type AccountSsoType = 'NAVER' | 'KAKAO' | 'GOOGLE';
 
 export interface AccountResponse {
   id: number;
   name: string;
   email: string;
   joinedAt: string | null;
-  /** 로그인한 적 없는 계정은 null (Swagger 스키마상 required 아님) */
-  lastLoginAt: string | null;
-  ssoType: AccountSsoType;
   role: AccountRole;
-  loginId: string;
-  status: AccountStatus;
 }
 
 /** Swagger: PageResponseAccountResponse */
@@ -28,13 +23,15 @@ export interface PageResponseAccountResponse {
   hasNext: boolean;
 }
 
-/** Swagger: AccountUpdateRequest */
+/**
+ * PUT /api/admin/accounts/{id} 요청 본문.
+ * status 필드가 제거되어 name만 전송합니다.
+ */
 export interface AccountUpdateRequest {
-  name?: string;
-  status?: AccountStatus;
+  name: string;
 }
 
-/** Swagger: AccountRoleUpdateRequest */
+/** PATCH /api/admin/accounts/{accountId}/role — 새 명세에 언급 없어 기존 그대로 유지 */
 export interface AccountRoleUpdateRequest {
   role: AccountRole;
 }

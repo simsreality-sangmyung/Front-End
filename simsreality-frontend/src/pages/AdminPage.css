@@ -1,42 +1,27 @@
 /* TWINOS admin dashboard — 트윈 관리 page-specific styles (shared design system in src/styles/twinDesignSystem.css) */
 
 .twin-table__col-info {
-  width: 22%;
+  width: 34%;
 }
 
 .twin-table__col-category {
-  width: 9%;
+  width: 16%;
 }
 
 .twin-table__col-manager {
-  width: 10%;
-}
-
-.twin-table__col-sync {
-  width: 15%;
-}
-
-.twin-table__col-sensor {
-  width: 9%;
-}
-
-.twin-table__col-status {
-  width: 9%;
+  width: 16%;
+  color: var(--twin-text-muted);
+  font-size: 12.5px;
 }
 
 .twin-table__col-date {
-  width: 12%;
+  width: 18%;
+  color: var(--twin-text-muted);
+  font-size: 12.5px;
 }
 
 .twin-table__col-actions {
-  width: 14%;
-}
-
-.twin-table__sensor-count {
-  font-variant-numeric: tabular-nums;
-  color: var(--twin-accent);
-  font-weight: 600;
-  font-size: 12.5px;
+  width: 16%;
 }
 
 /* Badges (category) */

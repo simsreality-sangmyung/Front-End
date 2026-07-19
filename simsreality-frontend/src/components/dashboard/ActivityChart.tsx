@@ -2,6 +2,7 @@ import { useRef, useState, type MouseEvent } from 'react';
 import type { ActivityPoint } from '../../types/dashboard';
 
 interface ActivityChartProps {
+  /** 실제 일별 방문자 추이 API가 없어 mocks/dashboard.ts의 mock 데이터를 사용합니다. */
   data: ActivityPoint[];
 }
 
@@ -10,8 +11,8 @@ const HEIGHT = 260;
 const PADDING = { top: 10, right: 12, bottom: 26, left: 34 };
 const PLOT_WIDTH = WIDTH - PADDING.left - PADDING.right;
 const PLOT_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom;
-const Y_MAX = 340;
-const Y_TICKS = [0, 85, 170, 255, 340];
+const Y_MAX = 100;
+const Y_TICKS = [0, 20, 40, 60, 80];
 
 function xForIndex(index: number, total: number): number {
   if (total <= 1) {
@@ -45,17 +46,27 @@ function buildSmoothPath(points: { x: number; y: number }[]): string {
   return path;
 }
 
+function buildSmoothAreaPath(points: { x: number; y: number }[], baseline: number): string {
+  if (points.length === 0) {
+    return '';
+  }
+  const linePath = buildSmoothPath(points);
+  const last = points[points.length - 1];
+  const first = points[0];
+  return `${linePath} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`;
+}
+
 function ActivityChart({ data }: ActivityChartProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const twinPoints = data.map((point, index) => ({
+  const totalVisitorPoints = data.map((point, index) => ({
     x: xForIndex(index, data.length),
-    y: yForValue(point.activeTwins),
+    y: yForValue(point.totalVisitors),
   }));
-  const alertPoints = data.map((point, index) => ({
+  const loggedInUserPoints = data.map((point, index) => ({
     x: xForIndex(index, data.length),
-    y: yForValue(point.alerts),
+    y: yForValue(point.loggedInUsers),
   }));
 
   const handlePointerMove = (event: MouseEvent<SVGRectElement>) => {
@@ -80,12 +91,12 @@ function ActivityChart({ data }: ActivityChartProps) {
   };
 
   const hoveredPoint = hoveredIndex !== null ? data[hoveredIndex] : null;
-  const hoveredTwinPoint = hoveredIndex !== null ? twinPoints[hoveredIndex] : null;
-  const hoveredAlertPoint = hoveredIndex !== null ? alertPoints[hoveredIndex] : null;
+  const hoveredTotalVisitorPoint = hoveredIndex !== null ? totalVisitorPoints[hoveredIndex] : null;
+  const hoveredLoggedInUserPoint = hoveredIndex !== null ? loggedInUserPoints[hoveredIndex] : null;
 
-  const tooltipLeftPercent = hoveredTwinPoint ? (hoveredTwinPoint.x / WIDTH) * 100 : 0;
-  const tooltipTopPercent = hoveredTwinPoint
-    ? (Math.min(hoveredTwinPoint.y, hoveredAlertPoint?.y ?? hoveredTwinPoint.y) / HEIGHT) * 100
+  const tooltipLeftPercent = hoveredTotalVisitorPoint ? (hoveredTotalVisitorPoint.x / WIDTH) * 100 : 0;
+  const tooltipTopPercent = hoveredTotalVisitorPoint
+    ? (Math.min(hoveredTotalVisitorPoint.y, hoveredLoggedInUserPoint?.y ?? hoveredTotalVisitorPoint.y) / HEIGHT) * 100
     : 0;
   const tooltipAlign = tooltipLeftPercent > 75 ? 'right' : tooltipLeftPercent < 15 ? 'left' : 'center';
 
@@ -93,17 +104,17 @@ function ActivityChart({ data }: ActivityChartProps) {
     <section className="twin-card dashboard-panel dashboard-chart-panel">
       <div className="dashboard-panel__header">
         <div>
-          <h2>트윈 활동 현황</h2>
+          <h2>페이지 방문자 수</h2>
           <p className="dashboard-panel__subtitle">최근 14일</p>
         </div>
         <div className="dashboard-chart__legend">
           <span className="dashboard-chart__legend-item">
             <span className="dashboard-chart__legend-dot dashboard-chart__legend-dot--accent" />
-            활성 트윈
+            전체 방문
           </span>
           <span className="dashboard-chart__legend-item">
             <span className="dashboard-chart__legend-dot dashboard-chart__legend-dot--amber" />
-            알림
+            로그인 사용자
           </span>
         </div>
       </div>
@@ -115,8 +126,15 @@ function ActivityChart({ data }: ActivityChartProps) {
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           preserveAspectRatio="none"
           role="img"
-          aria-label="트윈 활동 현황 차트"
+          aria-label="페이지 방문자 수 차트"
         >
+          <defs>
+            <linearGradient id="activityChartFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--twin-accent)" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="var(--twin-accent)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
           {Y_TICKS.map((tick) => {
             const y = yForValue(tick);
             return (
@@ -158,33 +176,39 @@ function ActivityChart({ data }: ActivityChartProps) {
           })}
 
           <path
-            d={buildSmoothPath(alertPoints)}
-            fill="none"
-            stroke="var(--twin-amber)"
-            strokeWidth={2}
-            strokeLinecap="round"
+            d={buildSmoothAreaPath(totalVisitorPoints, HEIGHT - PADDING.bottom)}
+            fill="url(#activityChartFill)"
+            stroke="none"
           />
           <path
-            d={buildSmoothPath(twinPoints)}
+            d={buildSmoothPath(loggedInUserPoints)}
+            fill="none"
+            stroke="var(--twin-amber)"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            opacity={0.85}
+          />
+          <path
+            d={buildSmoothPath(totalVisitorPoints)}
             fill="none"
             stroke="var(--twin-accent)"
             strokeWidth={2}
             strokeLinecap="round"
           />
 
-          {hoveredTwinPoint && hoveredAlertPoint ? (
+          {hoveredTotalVisitorPoint && hoveredLoggedInUserPoint ? (
             <g className="dashboard-chart__crosshair">
               <line
-                x1={hoveredTwinPoint.x}
-                x2={hoveredTwinPoint.x}
+                x1={hoveredTotalVisitorPoint.x}
+                x2={hoveredTotalVisitorPoint.x}
                 y1={PADDING.top}
                 y2={HEIGHT - PADDING.bottom}
                 stroke="rgba(255, 255, 255, 0.25)"
                 strokeWidth={1}
                 strokeDasharray="3 3"
               />
-              <circle cx={hoveredTwinPoint.x} cy={hoveredTwinPoint.y} r={4} fill="var(--twin-accent)" />
-              <circle cx={hoveredAlertPoint.x} cy={hoveredAlertPoint.y} r={4} fill="var(--twin-amber)" />
+              <circle cx={hoveredTotalVisitorPoint.x} cy={hoveredTotalVisitorPoint.y} r={4} fill="var(--twin-accent)" />
+              <circle cx={hoveredLoggedInUserPoint.x} cy={hoveredLoggedInUserPoint.y} r={4} fill="var(--twin-amber)" />
             </g>
           ) : null}
 
@@ -207,11 +231,11 @@ function ActivityChart({ data }: ActivityChartProps) {
             <p className="dashboard-chart__tooltip-title">{hoveredPoint.day}</p>
             <p className="dashboard-chart__tooltip-row">
               <span className="dashboard-chart__legend-dot dashboard-chart__legend-dot--accent" />
-              twins : {hoveredPoint.activeTwins.toLocaleString()}
+              전체 방문 : {hoveredPoint.totalVisitors.toLocaleString()}
             </p>
             <p className="dashboard-chart__tooltip-row">
               <span className="dashboard-chart__legend-dot dashboard-chart__legend-dot--amber" />
-              alerts : {hoveredPoint.alerts.toLocaleString()}
+              로그인 사용자 : {hoveredPoint.loggedInUsers.toLocaleString()}
             </p>
           </div>
         ) : null}

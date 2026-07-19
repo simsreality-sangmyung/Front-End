@@ -1,31 +1,25 @@
 /* TWINOS admin dashboard — 사용자 관리 page-specific styles (shared design system in src/styles/twinDesignSystem.css) */
 
-.user-table__col-user {
-  width: 30%;
+.user-table__col-name {
+  width: 26%;
+}
+
+.user-table__col-email {
+  width: 26%;
+  color: var(--twin-text-muted);
+  font-size: 12.5px;
 }
 
 .user-table__col-role {
-  width: 14%;
-}
-
-.user-table__col-twins {
-  width: 9%;
-}
-
-.user-table__col-status {
-  width: 9%;
+  width: 16%;
 }
 
 .user-table__col-joined {
-  width: 12%;
-}
-
-.user-table__col-login {
-  width: 12%;
+  width: 16%;
 }
 
 .user-table__col-actions {
-  width: 14%;
+  width: 16%;
 }
 
 .user-table__identity {
@@ -54,31 +48,12 @@
   min-width: 0;
 }
 
-.user-table__role {
-  margin: 0 0 4px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--twin-text);
-}
-
-.user-table__role--admin {
-  color: var(--twin-accent);
-}
-
-.user-table__twin-count {
-  font-variant-numeric: tabular-nums;
-  color: var(--twin-accent);
-  font-weight: 600;
-  font-size: 12.5px;
-}
-
-.user-table__col-joined,
-.user-table__col-login {
+.user-table__col-joined {
   color: var(--twin-text-muted);
   font-size: 12.5px;
 }
 
-/* Plan badges */
+/* Role badge */
 .user-badge {
   display: inline-flex;
   align-items: center;
@@ -96,42 +71,8 @@
   color: var(--twin-text-muted);
 }
 
-.user-badge--pro {
-  background: var(--twin-green-bg);
-  border-color: rgba(52, 224, 161, 0.3);
-  color: var(--twin-green);
-}
-
 .user-badge--enterprise {
   background: var(--twin-accent-bg);
   border-color: var(--twin-accent-border);
   color: var(--twin-accent);
-}
-
-/* User status (reuses .twin-status / .twin-status__dot base) */
-.user-status--active {
-  color: var(--twin-green);
-}
-
-.user-status--active .twin-status__dot {
-  background: var(--twin-green);
-  box-shadow: 0 0 6px rgba(52, 224, 161, 0.7);
-}
-
-.user-status--suspended {
-  color: var(--twin-rose);
-}
-
-.user-status--suspended .twin-status__dot {
-  background: var(--twin-rose);
-  box-shadow: 0 0 6px rgba(241, 106, 140, 0.7);
-}
-
-.user-status--pending {
-  color: var(--twin-amber);
-}
-
-.user-status--pending .twin-status__dot {
-  background: var(--twin-amber);
-  box-shadow: 0 0 6px rgba(245, 183, 74, 0.7);
 }

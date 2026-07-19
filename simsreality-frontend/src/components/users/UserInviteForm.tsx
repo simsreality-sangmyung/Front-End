@@ -1,10 +1,5 @@
 import { type FormEvent, useState } from 'react';
-import {
-  USER_PLAN_OPTIONS,
-  USER_ROLE_OPTIONS,
-  type UserPlan,
-  type UserRole,
-} from '../../types/user';
+import { USER_ROLE_OPTIONS, type UserRole } from '../../types/user';
 
 interface UserInviteFormProps {
   isSubmitting: boolean;
@@ -13,7 +8,6 @@ interface UserInviteFormProps {
     name: string;
     email: string;
     role: UserRole;
-    plan: UserPlan;
   }) => void;
   onCancel: () => void;
 }
@@ -27,7 +21,6 @@ function UserInviteForm({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>(USER_ROLE_OPTIONS[0]);
-  const [plan, setPlan] = useState<UserPlan>(USER_PLAN_OPTIONS[0]);
   const [error, setError] = useState('');
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -46,7 +39,7 @@ function UserInviteForm({
       return;
     }
 
-    onSubmit({ name: trimmedName, email: trimmedEmail, role, plan });
+    onSubmit({ name: trimmedName, email: trimmedEmail, role });
   };
 
   return (
@@ -93,22 +86,6 @@ function UserInviteForm({
               disabled={isSubmitting}
             >
               {USER_ROLE_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="twin-form__field">
-            <span className="twin-field-label">플랜</span>
-            <select
-              className="twin-control"
-              value={plan}
-              onChange={(event) => setPlan(event.target.value as UserPlan)}
-              disabled={isSubmitting}
-            >
-              {USER_PLAN_OPTIONS.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>

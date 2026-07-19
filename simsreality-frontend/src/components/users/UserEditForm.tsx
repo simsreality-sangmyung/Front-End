@@ -1,24 +1,11 @@
 import { type FormEvent, useState } from 'react';
-import {
-  USER_PLAN_OPTIONS,
-  USER_ROLE_OPTIONS,
-  USER_STATUS_OPTIONS,
-  type User,
-  type UserPlan,
-  type UserRole,
-  type UserStatus,
-} from '../../types/user';
+import { USER_ROLE_OPTIONS, type User, type UserRole } from '../../types/user';
 
 interface UserEditFormProps {
   user: User;
   isSubmitting: boolean;
   submitError?: string | null;
-  onSubmit: (input: {
-    id: number;
-    role: UserRole;
-    plan: UserPlan;
-    status: UserStatus;
-  }) => void;
+  onSubmit: (input: { id: number; name: string; role: UserRole }) => void;
   onCancel: () => void;
 }
 
@@ -29,13 +16,21 @@ function UserEditForm({
   onSubmit,
   onCancel,
 }: UserEditFormProps) {
+  const [name, setName] = useState(user.name);
   const [role, setRole] = useState<UserRole>(user.role);
-  const [plan, setPlan] = useState<UserPlan>(user.plan);
-  const [status, setStatus] = useState<UserStatus>(user.status);
+  const [error, setError] = useState('');
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit({ id: user.id, role, plan, status });
+    setError('');
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError('이름을 입력해주세요.');
+      return;
+    }
+
+    onSubmit({ id: user.id, name: trimmedName, role });
   };
 
   return (
@@ -46,7 +41,14 @@ function UserEditForm({
         <div className="twin-form__fields">
           <label className="twin-form__field">
             <span className="twin-field-label">이름</span>
-            <input className="twin-control" type="text" value={user.name} disabled />
+            <input
+              className="twin-control"
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="이름을 입력하세요"
+              disabled={isSubmitting}
+            />
           </label>
 
           <label className="twin-form__field">
@@ -69,40 +71,9 @@ function UserEditForm({
               ))}
             </select>
           </label>
-
-          <label className="twin-form__field">
-            <span className="twin-field-label">플랜</span>
-            <select
-              className="twin-control"
-              value={plan}
-              onChange={(event) => setPlan(event.target.value as UserPlan)}
-              disabled={isSubmitting}
-            >
-              {USER_PLAN_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="twin-form__field">
-            <span className="twin-field-label">상태</span>
-            <select
-              className="twin-control"
-              value={status}
-              onChange={(event) => setStatus(event.target.value as UserStatus)}
-              disabled={isSubmitting}
-            >
-              {USER_STATUS_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
 
+        {error && <p className="twin-form__error">{error}</p>}
         {submitError && <p className="twin-form__error">{submitError}</p>}
 
         <div className="twin-form__actions">

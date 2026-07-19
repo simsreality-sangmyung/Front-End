@@ -1,19 +1,13 @@
 import { Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import AdminModal from '../components/admin/AdminModal';
 import AdminPagination from '../components/admin/AdminPagination';
 import UserEditForm from '../components/users/UserEditForm';
 import UserInviteForm from '../components/users/UserInviteForm';
 import UserSearchForm from '../components/users/UserSearchForm';
-import UserStatsCards from '../components/users/UserStatsCards';
 import UserTable from '../components/users/UserTable';
-import {
-  useCreateUser,
-  useDeleteUser,
-  useToggleUserSuspend,
-  useUpdateUser,
-} from '../hooks/useUserMutations';
-import { useUsers, useUsersStats } from '../hooks/useUsers';
+import { useCreateUser, useDeleteUser, useUpdateUser } from '../hooks/useUserMutations';
+import { useUsers } from '../hooks/useUsers';
 import type { User, UserSearchParams, UserSortOption } from '../types/user';
 import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/twinDesignSystem.css';
@@ -25,9 +19,10 @@ function UserManagementPage() {
   const [searchParams, setSearchParams] = useState<UserSearchParams>({});
   const [sort, setSort] = useState<UserSortOption>('joined-desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showInviteForm, setShowInviteForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [mutatingId, setMutatingId] = useState<number | null>(null);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteSuccessMessage, setInviteSuccessMessage] = useState<string | null>(null);
 
   const listParams: UserSearchParams = {
     ...searchParams,
@@ -42,7 +37,6 @@ function UserManagementPage() {
     isError,
     error: listError,
   } = useUsers(listParams);
-  const { data: statsUsers = [] } = useUsersStats();
 
   const users = pageData?.users ?? [];
   const totalPages = Math.max(1, pageData?.totalPages ?? 1);
@@ -63,7 +57,10 @@ function UserManagementPage() {
 
   const createMutation = useCreateUser({
     searchParams: listParams,
-    onSuccess: () => setShowInviteForm(false),
+    onSuccess: () => {
+      setShowInviteForm(false);
+      setInviteSuccessMessage('초대를 완료했습니다.');
+    },
   });
 
   const updateMutation = useUpdateUser({
@@ -71,25 +68,12 @@ function UserManagementPage() {
     onSuccess: () => setEditingUser(null),
   });
 
-  const suspendMutation = useToggleUserSuspend({
-    searchParams: listParams,
-    onSuccess: () => setMutatingId(null),
-  });
-
   const deleteMutation = useDeleteUser({
     searchParams: listParams,
     onSuccess: () => setMutatingId(null),
   });
 
-  const isMutating =
-    suspendMutation.isPending || deleteMutation.isPending;
-
-  const createErrorMessage = createMutation.isError
-    ? getApiErrorMessage(
-        createMutation.error,
-        '사용자 초대에 실패했습니다.',
-      )
-    : null;
+  const isMutating = deleteMutation.isPending;
 
   const updateErrorMessage = updateMutation.isError
     ? getApiErrorMessage(updateMutation.error, '사용자 수정에 실패했습니다.')
@@ -99,35 +83,17 @@ function UserManagementPage() {
     ? getApiErrorMessage(deleteMutation.error, '사용자 삭제에 실패했습니다.')
     : null;
 
-  const suspendErrorMessage = suspendMutation.isError
-    ? getApiErrorMessage(
-        suspendMutation.error,
-        '사용자 상태 변경에 실패했습니다.',
-      )
-    : null;
-
-  const handleInviteClick = () => {
-    setEditingUser(null);
-    setShowInviteForm(true);
-  };
-
-  const handleCloseInviteModal = useCallback(() => {
-    if (!createMutation.isPending) {
-      setShowInviteForm(false);
-    }
-  }, [createMutation.isPending]);
-
-  const handleToggleSuspend = (user: User) => {
-    setMutatingId(user.id);
-    suspendMutation.mutate(user, {
-      onError: () => setMutatingId(null),
-    });
-  };
-
   const handleEdit = (user: User) => {
-    setShowInviteForm(false);
     setEditingUser(user);
   };
+
+  useEffect(() => {
+    if (!inviteSuccessMessage) {
+      return;
+    }
+    const timer = window.setTimeout(() => setInviteSuccessMessage(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [inviteSuccessMessage]);
 
   const handleDelete = (user: User) => {
     const confirmed = window.confirm(`"${user.name}" 사용자를 삭제하시겠습니까?`);
@@ -156,30 +122,35 @@ function UserManagementPage() {
         <button
           type="button"
           className="twin-btn twin-btn--primary admin-page__register-btn"
-          onClick={handleInviteClick}
-          disabled={createMutation.isPending || updateMutation.isPending}
+          onClick={() => setShowInviteForm(true)}
         >
           <Plus size={14} strokeWidth={2.5} />
           사용자 초대
         </button>
       </header>
 
-      <UserStatsCards users={statsUsers} />
-
       <UserSearchForm initialParams={searchParams} onSearch={handleSearch} />
 
       {showInviteForm && (
         <AdminModal
-          onClose={handleCloseInviteModal}
+          onClose={() => {
+            if (!createMutation.isPending) {
+              setShowInviteForm(false);
+            }
+          }}
           isCloseDisabled={createMutation.isPending}
         >
           <UserInviteForm
             isSubmitting={createMutation.isPending}
-            submitError={createErrorMessage}
+            submitError={null}
             onSubmit={(input) => createMutation.mutate(input)}
-            onCancel={handleCloseInviteModal}
+            onCancel={() => setShowInviteForm(false)}
           />
         </AdminModal>
+      )}
+
+      {inviteSuccessMessage && (
+        <p className="admin-page__success twin-card">{inviteSuccessMessage}</p>
       )}
 
       {editingUser && (
@@ -202,10 +173,6 @@ function UserManagementPage() {
         </AdminModal>
       )}
 
-      {suspendErrorMessage && (
-        <p className="admin-page__error twin-card">{suspendErrorMessage}</p>
-      )}
-
       {deleteErrorMessage && (
         <p className="admin-page__error twin-card">{deleteErrorMessage}</p>
       )}
@@ -220,7 +187,6 @@ function UserManagementPage() {
         mutatingId={mutatingId}
         sort={sort}
         onSortChange={handleSortChange}
-        onToggleSuspend={handleToggleSuspend}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

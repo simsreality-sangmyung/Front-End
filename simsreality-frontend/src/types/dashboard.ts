@@ -1,18 +1,23 @@
+/**
+ * GET /api/admin/dashboard 응답 (curl로 실제 확인됨).
+ * 통계 카드 4개 전부 실제 API 값입니다.
+ */
 export interface DashboardStats {
-  totalTwins: number;
-  totalTwinsDelta: string;
-  activeSensors: number;
-  activeSensorsLabel: string;
-  alertCount: number;
-  alertCountLabel: string;
-  avgSyncRate: number;
-  avgSyncRateLabel: string;
+  totalTwinCount: number;
+  thisMonthNewTwinCount: number;
+  totalVisitorCount: number;
+  loggedInVisitorCount: number;
 }
 
+/**
+ * 일별 방문자 추이 그래프 데이터.
+ * 실제 일별 방문자 추이 API가 없어 mocks/dashboard.ts의 mock 데이터를 사용합니다
+ * (화면 문구는 Figma 기준 "페이지 방문자 수"에 맞춰 표시됩니다).
+ */
 export interface ActivityPoint {
   day: string;
-  activeTwins: number;
-  alerts: number;
+  totalVisitors: number;
+  loggedInUsers: number;
 }
 
 export type AlertSeverity = 'warning' | 'critical' | 'info';
@@ -48,4 +53,12 @@ export interface DashboardData {
   activity: ActivityPoint[];
   recentAlerts: RecentAlert[];
   twins: TwinOverviewItem[];
+}
+
+/** API 공통 응답 포맷 */
+export interface ApiResponse<T> {
+  statusCode: number;
+  message: string;
+  data: T;
+  timestamp: string;
 }

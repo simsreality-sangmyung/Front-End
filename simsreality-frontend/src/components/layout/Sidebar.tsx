@@ -1,11 +1,11 @@
-import { Box, Globe, LayoutGrid, LogOut, Settings, Users } from 'lucide-react';
+import { Focus, Globe, LayoutGrid, LogOut, Settings, Users } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: '대시보드', icon: LayoutGrid },
   { to: '/users', label: '사용자 관리', icon: Users },
-  { to: '/', label: '트윈 관리', icon: Box, end: true },
+  { to: '/', label: '트윈 관리', icon: Focus, end: true },
   { to: '/settings', label: '설정', icon: Settings },
 ];
 

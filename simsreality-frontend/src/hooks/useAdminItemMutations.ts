@@ -7,36 +7,28 @@ import {
 } from '../api/adminApi';
 import type {
   AdminItemSearchParams,
-  CreateUploadProgress,
   UpdateAdminItemInput,
 } from '../types/adminItem';
 
 interface UseUpdateAdminItemOptions {
   searchParams: AdminItemSearchParams;
-  onProgress: (progress: CreateUploadProgress | null) => void;
   onSuccess?: () => void;
 }
 
 export function useUpdateAdminItem({
   searchParams,
-  onProgress,
   onSuccess,
 }: UseUpdateAdminItemOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateAdminItemInput) =>
-      updateAdminItem(input, (progress) => onProgress(progress)),
+    mutationFn: (input: UpdateAdminItemInput) => updateAdminItem(input),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: adminItemsQueryKey(searchParams),
       });
       queryClient.invalidateQueries({ queryKey: adminItemsStatsQueryKey });
-      onProgress(null);
       onSuccess?.();
-    },
-    onError: () => {
-      onProgress(null);
     },
   });
 }

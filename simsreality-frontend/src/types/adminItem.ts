@@ -1,3 +1,5 @@
+import type { AccountRole } from './account';
+
 export type TwinCategory = '물류센터' | '제조센터';
 
 export type TwinStatus = '정상' | '경고' | '오프라인';
@@ -7,10 +9,11 @@ export const TWIN_CATEGORY_OPTIONS: TwinCategory[] = ['물류센터', '제조센
 export const TWIN_STATUS_OPTIONS: TwinStatus[] = ['정상', '경고', '오프라인'];
 
 /**
- * UI 표시용 모델. Swagger 목록 응답(AdminDigitalTwinListResponse)에는
- * manager/syncRate/sensorCount/status 필드가 존재하지 않습니다.
- * 해당 필드는 서버 데이터가 아니라, 화면(UI)을 유지하기 위한 더미 값입니다
- * (src/utils/adminItemMapper.ts의 getDummy* 함수 참고).
+ * UI 표시용 모델.
+ * managerId/managerName/managerRole은 목록/검색 API 응답의 실제 값입니다(curl로 확인됨).
+ * status는 API 응답에 해당 필드가 없어, id 기반으로 클라이언트에서 결정적으로 생성한
+ * mock 값입니다(src/utils/adminItemMapper.ts의 getDummyStatus 참고). 트윈 수정 모달의
+ * "상태" select는 Figma UI 유지를 위해 남겨두지만, 서버로는 전송되지 않습니다.
  */
 export interface AdminItem {
   id: number;
@@ -18,13 +21,13 @@ export interface AdminItem {
   description: string;
   location: string;
   category: TwinCategory;
-  /** Swagger 응답에 없는 필드 — 더미 값 */
-  manager: string;
-  /** Swagger 응답에 없는 필드 — 더미 값 */
-  syncRate: number;
-  /** Swagger 응답에 없는 필드 — 더미 값 */
-  sensorCount: number;
-  /** Swagger 응답에 없는 필드 — 더미 값 */
+  /** API 응답의 실제 값 — 담당자가 없으면 null */
+  managerId: number | null;
+  /** API 응답의 실제 값 — 담당자가 없으면 '-' */
+  managerName: string;
+  /** API 응답의 실제 값 */
+  managerRole: AccountRole | null;
+  /** mock 값 — API 응답에 없는 필드 (코드 주석 참고, 화면 노출 없음) */
   status: TwinStatus;
   imageFileName: string;
   registeredAt: string;
@@ -32,11 +35,16 @@ export interface AdminItem {
   executableFileName: string;
 }
 
+export type AdminItemSearchField = 'title' | 'id' | 'managerName';
+
+/**
+ * 검색 조건 — date(등록일)는 제거되었고 id/managerName이 추가되었습니다.
+ * searchField로 선택된 항목 하나만 서버로 전송합니다 (임의로 동시 전송하지 않음).
+ */
 export interface AdminItemSearchParams {
   keyword?: string;
-  registeredAt?: string;
+  searchField?: AdminItemSearchField;
   category?: TwinCategory | 'all';
-  status?: TwinStatus | 'all';
   /** 0-based (API 기준) */
   page?: number;
   size?: number;
@@ -52,7 +60,12 @@ export interface AdminItemsPageResult {
   totalPages: number;
 }
 
-export type AdminItemSortOption = 'newest' | 'oldest' | 'sync-desc' | 'sync-asc';
+/**
+ * 서버가 등록일 기준 정렬만 지원합니다(GET /api/admin/digital-twins sort 파라미터).
+ * 그 외 정렬 옵션은 서버가 지원하지 않으므로 제공하지 않습니다
+ * (등록일순으로 몰래 대체하지 않고, 지원하지 않는 옵션 자체를 노출하지 않습니다).
+ */
+export type AdminItemSortOption = 'newest' | 'oldest';
 
 export const ADMIN_ITEM_SORT_OPTIONS: {
   value: AdminItemSortOption;
@@ -60,20 +73,19 @@ export const ADMIN_ITEM_SORT_OPTIONS: {
 }[] = [
   { value: 'newest', label: '최신순' },
   { value: 'oldest', label: '오래된순' },
-  { value: 'sync-desc', label: '동기화율 높은순' },
-  { value: 'sync-asc', label: '동기화율 낮은순' },
 ];
 
 /**
  * 디지털트윈 등록(POST /api/admin/digital-twins) 요청 입력.
- * 필드명은 Swagger 문서(title/place/description/category/image/executableFile/threeJs/model)를 그대로 따릅니다.
- * "담당자"는 Swagger 등록 API에 없는 필드라 포함하지 않습니다.
+ * managerId가 새로 추가되었습니다. 담당자를 선택하지 않으면 전송하지 않습니다
+ * (임의의 더미 값을 보내지 않기 위함).
  */
 export interface CreateAdminItemInput {
   title: string;
   place: string;
   description: string;
   category: TwinCategory;
+  managerId: number | null;
   imageFile: File | null;
   executableFile: File | null;
   threeJsFile: File | null;
@@ -81,7 +93,7 @@ export interface CreateAdminItemInput {
 }
 
 /**
- * Swagger 등록 API의 category 필드는 boolean 문자열을 기대합니다.
+ * category 필드는 boolean 문자열을 기대합니다.
  * 물류센터 → "false", 제조센터 → "true"
  */
 export function mapTwinCategoryToApiValue(
@@ -91,7 +103,7 @@ export function mapTwinCategoryToApiValue(
 }
 
 /**
- * Swagger category 값 → UI TwinCategory.
+ * category 값 → UI TwinCategory.
  * 서버 응답은 문자열("true"/"false"/"1"/"0")뿐 아니라 실제 boolean(true/false)이나
  * number(1/0)로도 내려올 수 있어, 세 가지 타입을 모두 안전하게 처리합니다.
  * - true, "true", 1, "1" → 제조센터
@@ -121,8 +133,10 @@ export interface CreateUploadProgress {
 
 /**
  * 디지털트윈 수정(PUT /api/admin/digital-twins/{id}) 요청 입력.
- * manager/status/syncRate/sensorCount는 Swagger AdminDigitalTwinRequest 스키마에 없어
- * 서버로 전송되지 않습니다(수정 폼 UI는 기존 그대로 유지하되, 값은 저장되지 않습니다).
+ * managerId가 새로 추가되었습니다. 목록 응답의 managerId로 현재 담당자를 기본
+ * 선택하며, "선택 안 함"으로 두면 managerId를 전송하지 않습니다.
+ * 트윈 수정 모달에서는 이미지/실행파일 업로드를 지원하지 않습니다(Figma 기준).
+ * status는 API 스키마에 없어 서버로 전송되지 않습니다(mock 값, Figma UI 유지 목적).
  */
 export interface UpdateAdminItemInput {
   id: number;
@@ -130,16 +144,9 @@ export interface UpdateAdminItemInput {
   description: string;
   location: string;
   category: TwinCategory;
-  /** Swagger 수정 API에 없는 필드 — 서버로 전송되지 않음(더미 값) */
-  manager: string;
-  /** Swagger 수정 API에 없는 필드 — 서버로 전송되지 않음(더미 값) */
+  managerId: number | null;
+  /** API 스키마에 없는 필드 — 서버로 전송되지 않음(mock 값) */
   status: TwinStatus;
-  /** Swagger 수정 API에 없는 필드 — 서버로 전송되지 않음(더미 값) */
-  syncRate: number;
-  /** Swagger 수정 API에 없는 필드 — 서버로 전송되지 않음(더미 값) */
-  sensorCount: number;
-  imageFile?: File;
-  executableFile?: File;
 }
 
 export function formatTwinId(id: number): string {

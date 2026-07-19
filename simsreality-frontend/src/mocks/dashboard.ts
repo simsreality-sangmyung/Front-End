@@ -1,31 +1,26 @@
 import type { DashboardData } from '../types/dashboard';
 
-export const mockDashboardData: DashboardData = {
-  stats: {
-    totalTwins: 7,
-    totalTwinsDelta: '+2 이번 달',
-    activeSensors: 1787,
-    activeSensorsLabel: '전체 센서 수',
-    alertCount: 2,
-    alertCountLabel: '미처리 알림',
-    avgSyncRate: 97.1,
-    avgSyncRateLabel: '최근 24시간',
-  },
+/**
+ * 통계 카드(stats)는 실제 API(GET /api/admin/dashboard)로 대체되어 더 이상 여기서
+ * 제공하지 않습니다. activity(페이지 방문자 추이)/recentAlerts(최근 알림)/twins(트윈 목록)
+ * 은 대응하는 응답 필드가 없어 mock 데이터로 유지합니다(화면은 Figma와 동일하게 표시).
+ */
+export const mockDashboardExtras: Omit<DashboardData, 'stats'> = {
   activity: [
-    { day: '1일', activeTwins: 290, alerts: 5 },
-    { day: '2일', activeTwins: 322, alerts: 8 },
-    { day: '3일', activeTwins: 336, alerts: 6 },
-    { day: '4일', activeTwins: 324, alerts: 9 },
-    { day: '5일', activeTwins: 298, alerts: 7 },
-    { day: '6일', activeTwins: 270, alerts: 5 },
-    { day: '7일', activeTwins: 259, alerts: 8 },
-    { day: '8일', activeTwins: 254, alerts: 10 },
-    { day: '9일', activeTwins: 266, alerts: 6 },
-    { day: '10일', activeTwins: 282, alerts: 7 },
-    { day: '11일', activeTwins: 311, alerts: 9 },
-    { day: '12일', activeTwins: 336, alerts: 8 },
-    { day: '13일', activeTwins: 320, alerts: 6 },
-    { day: '14일', activeTwins: 300, alerts: 7 },
+    { day: '1일', totalVisitors: 65, loggedInUsers: 5 },
+    { day: '2일', totalVisitors: 82, loggedInUsers: 8 },
+    { day: '3일', totalVisitors: 90, loggedInUsers: 6 },
+    { day: '4일', totalVisitors: 83, loggedInUsers: 9 },
+    { day: '5일', totalVisitors: 69, loggedInUsers: 7 },
+    { day: '6일', totalVisitors: 54, loggedInUsers: 5 },
+    { day: '7일', totalVisitors: 48, loggedInUsers: 8 },
+    { day: '8일', totalVisitors: 45, loggedInUsers: 10 },
+    { day: '9일', totalVisitors: 52, loggedInUsers: 6 },
+    { day: '10일', totalVisitors: 60, loggedInUsers: 7 },
+    { day: '11일', totalVisitors: 76, loggedInUsers: 9 },
+    { day: '12일', totalVisitors: 90, loggedInUsers: 8 },
+    { day: '13일', totalVisitors: 81, loggedInUsers: 6 },
+    { day: '14일', totalVisitors: 70, loggedInUsers: 7 },
   ],
   recentAlerts: [
     {

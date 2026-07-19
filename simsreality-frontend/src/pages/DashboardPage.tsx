@@ -64,7 +64,7 @@ function DashboardPage() {
 
       {data && (
         <>
-          <DashboardStatsCards stats={data.stats} />
+          <DashboardStatsCards stats={data.stats} alertCount={data.recentAlerts.length} />
 
           <div className="dashboard-grid">
             <ActivityChart data={data.activity} />

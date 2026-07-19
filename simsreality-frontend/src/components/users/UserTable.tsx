@@ -11,21 +11,13 @@ interface UserTableProps {
   mutatingId: number | null;
   sort: UserSortOption;
   onSortChange: (sort: UserSortOption) => void;
-  onToggleSuspend: (user: User) => void;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
 }
 
-const PLAN_CLASS: Record<User['plan'], string> = {
-  스탠다드: 'user-badge--standard',
-  프로: 'user-badge--pro',
-  엔터프라이즈: 'user-badge--enterprise',
-};
-
-const STATUS_CLASS: Record<User['status'], string> = {
-  활성: 'user-status--active',
-  정지: 'user-status--suspended',
-  대기: 'user-status--pending',
+const ROLE_CLASS: Record<User['role'], string> = {
+  사용자: 'user-badge--standard',
+  관리자: 'user-badge--enterprise',
 };
 
 function SortHeader({
@@ -66,7 +58,6 @@ function UserTable({
   mutatingId,
   sort,
   onSortChange,
-  onToggleSuspend,
   onEdit,
   onDelete,
 }: UserTableProps) {
@@ -102,18 +93,9 @@ function UserTable({
         <table className="twin-table user-table">
           <thead>
             <tr>
-              <th className="user-table__col-user">사용자</th>
-              <th className="user-table__col-role">역할 / 플랜</th>
-              <th className="user-table__col-twins">
-                <SortHeader
-                  label="트윈 수"
-                  ascValue="twin-asc"
-                  descValue="twin-desc"
-                  sort={sort}
-                  onSortChange={onSortChange}
-                />
-              </th>
-              <th className="user-table__col-status">상태</th>
+              <th className="user-table__col-name">이름</th>
+              <th className="user-table__col-email">이메일</th>
+              <th className="user-table__col-role">권한</th>
               <th className="user-table__col-joined">
                 <SortHeader
                   label="가입일"
@@ -123,54 +105,38 @@ function UserTable({
                   onSortChange={onSortChange}
                 />
               </th>
-              <th className="user-table__col-login">최근 로그인</th>
               <th className="user-table__col-actions" aria-label="관리" />
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
               <tr key={user.id}>
-                <td className="user-table__col-user">
+                <td className="user-table__col-name">
                   <div className="user-table__identity">
                     <span className="user-avatar">{getUserInitials(user.email)}</span>
                     <div className="user-table__identity-text">
                       <p className="twin-table__title">{user.name}</p>
-                      <p className="twin-table__subtitle">{user.email}</p>
+                      <p className="twin-table__subtitle">
+                        USR-{String(user.id).padStart(3, '0')}
+                      </p>
                     </div>
                   </div>
                 </td>
+                <td className="user-table__col-email">{user.email}</td>
                 <td className="user-table__col-role">
-                  <p
-                    className={`user-table__role${
-                      user.role === '관리자' ? ' user-table__role--admin' : ''
-                    }`}
-                  >
+                  <span className={`user-badge ${ROLE_CLASS[user.role]}`}>
                     {user.role}
-                  </p>
-                  <span className={`user-badge ${PLAN_CLASS[user.plan]}`}>
-                    {user.plan}
-                  </span>
-                </td>
-                <td className="user-table__col-twins user-table__twin-count">
-                  {user.twinCount.toLocaleString()}
-                </td>
-                <td className="user-table__col-status">
-                  <span className={`twin-status ${STATUS_CLASS[user.status]}`}>
-                    <span className="twin-status__dot" />
-                    {user.status}
                   </span>
                 </td>
                 <td className="user-table__col-joined">{user.joinedAt}</td>
-                <td className="user-table__col-login">{user.lastLoginAt}</td>
                 <td className="user-table__col-actions">
                   <div className="twin-table__actions">
                     <button
                       type="button"
                       className="twin-icon-btn"
-                      onClick={() => onToggleSuspend(user)}
-                      disabled={isMutating}
-                      aria-label={user.status === '정지' ? '정지 해제' : '정지'}
-                      title={user.status === '정지' ? '정지 해제' : '정지'}
+                      disabled
+                      aria-label="정지 (현재 API 미지원)"
+                      title="현재 API 미지원"
                     >
                       <Ban size={13} />
                     </button>
@@ -202,7 +168,7 @@ function UserTable({
         </table>
       </div>
       <p className="twin-table-card__summary">
-        총 {users.length}명 표시 중 / 전체 {totalCount}명
+        {users.length}명 표시 / 전체 {totalCount}명
       </p>
     </section>
   );

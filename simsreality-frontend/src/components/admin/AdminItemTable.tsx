@@ -1,9 +1,17 @@
-import { ChevronDown, ChevronUp, Eye, Pencil, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import type { AccountRole } from '../../types/account';
 import {
   formatTwinId,
   type AdminItem,
   type AdminItemSortOption,
 } from '../../types/adminItem';
+
+const MANAGER_ROLE_LABEL: Record<AccountRole, string> = {
+  SUPER: '관리자',
+  ADMIN: '관리자',
+  USER: '사용자',
+  PENDING: '가입 대기',
+};
 
 interface AdminItemTableProps {
   items: AdminItem[];
@@ -21,18 +29,6 @@ interface AdminItemTableProps {
 const CATEGORY_CLASS: Record<AdminItem['category'], string> = {
   물류센터: 'twin-badge--logistics',
   제조센터: 'twin-badge--manufacture',
-};
-
-const STATUS_CLASS: Record<AdminItem['status'], string> = {
-  정상: 'twin-status--normal',
-  경고: 'twin-status--warning',
-  오프라인: 'twin-status--offline',
-};
-
-const SYNC_BAR_CLASS: Record<AdminItem['status'], string> = {
-  정상: 'twin-sync-bar__fill--normal',
-  경고: 'twin-sync-bar__fill--warning',
-  오프라인: 'twin-sync-bar__fill--offline',
 };
 
 function SortHeader({
@@ -75,11 +71,6 @@ function AdminItemTable({
   onEdit,
   onDelete,
 }: AdminItemTableProps) {
-  const handleOpenViewer = (item: AdminItem) => {
-    // TODO: Three.js Viewer 연결
-    void item;
-  };
-
   if (isLoading) {
     return (
       <section className="twin-card twin-table-card">
@@ -112,23 +103,12 @@ function AdminItemTable({
         <table className="twin-table">
           <thead>
             <tr>
-              <th className="twin-table__col-info">트윈 정보</th>
+              <th className="twin-table__col-info">트윈 이름</th>
               <th className="twin-table__col-category">유형</th>
               <th className="twin-table__col-manager">담당자</th>
-              <th className="twin-table__col-sync">
-                <SortHeader
-                  label="동기화율"
-                  ascValue="sync-asc"
-                  descValue="sync-desc"
-                  sort={sort}
-                  onSortChange={onSortChange}
-                />
-              </th>
-              <th className="twin-table__col-sensor">센서 수</th>
-              <th className="twin-table__col-status">상태</th>
               <th className="twin-table__col-date">
                 <SortHeader
-                  label="등록일"
+                  label="등록일자"
                   ascValue="oldest"
                   descValue="newest"
                   sort={sort}
@@ -154,42 +134,17 @@ function AdminItemTable({
                     {item.category}
                   </span>
                 </td>
-                <td className="twin-table__col-manager">{item.manager}</td>
-                <td className="twin-table__col-sync">
-                  <div className="twin-sync">
-                    <div className="twin-sync-bar">
-                      <div
-                        className={`twin-sync-bar__fill ${SYNC_BAR_CLASS[item.status]}`}
-                        style={{ width: `${Math.max(0, Math.min(100, item.syncRate))}%` }}
-                      />
-                    </div>
-                    <span className="twin-sync__value">
-                      {item.syncRate.toFixed(1)}%
-                    </span>
-                  </div>
-                </td>
-                <td className="twin-table__col-sensor twin-table__sensor-count">
-                  {item.sensorCount.toLocaleString()}
-                </td>
-                <td className="twin-table__col-status">
-                  <span className={`twin-status ${STATUS_CLASS[item.status]}`}>
-                    <span className="twin-status__dot" />
-                    {item.status}
-                  </span>
+                <td className="twin-table__col-manager">
+                  {item.managerName}
+                  {item.managerRole && (
+                    <p className="twin-table__subtitle">
+                      {MANAGER_ROLE_LABEL[item.managerRole]}
+                    </p>
+                  )}
                 </td>
                 <td className="twin-table__col-date">{item.registeredAt}</td>
                 <td className="twin-table__col-actions">
                   <div className="twin-table__actions">
-                    <button
-                      type="button"
-                      className="twin-icon-btn"
-                      onClick={() => handleOpenViewer(item)}
-                      disabled={isDeleting}
-                      aria-label="Viewer 열기"
-                      title="Viewer 열기"
-                    >
-                      <Eye size={13} />
-                    </button>
                     <button
                       type="button"
                       className="twin-icon-btn"

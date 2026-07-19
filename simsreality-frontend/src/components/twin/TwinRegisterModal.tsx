@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import AdminModal from '../admin/AdminModal';
+import ManagerSelectField from '../admin/ManagerSelectField';
 import UploadProgressBar from '../admin/UploadProgressBar';
 import {
   TWIN_CATEGORY_OPTIONS,
@@ -31,8 +32,9 @@ interface TwinRegisterModalProps {
 
 /**
  * 재사용 가능한 "디지털트윈 등록" 팝업.
- * 필드/FormData 키는 Swagger(POST /api/admin/digital-twins) 문서를 그대로 따릅니다.
- * 담당자는 Swagger 등록 API에 없는 필드라 입력 항목에서 제외했습니다.
+ * 필드/FormData 키는 POST /api/admin/digital-twins 명세를 그대로 따릅니다.
+ * 담당자(managerId)는 별도 담당자 API가 없어 계정 목록(GET /api/admin/accounts)을
+ * 재사용해 선택할 수 있게 구성했습니다.
  */
 function TwinRegisterModal({
   isSubmitting,
@@ -47,6 +49,7 @@ function TwinRegisterModal({
   const [category, setCategory] = useState<TwinCategory>(
     TWIN_CATEGORY_OPTIONS[0],
   );
+  const [managerId, setManagerId] = useState<number | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [executableFile, setExecutableFile] = useState<File | null>(null);
   const [threeJsFile, setThreeJsFile] = useState<File | null>(null);
@@ -91,6 +94,7 @@ function TwinRegisterModal({
       place: place.trim(),
       description: description.trim(),
       category,
+      managerId,
       imageFile,
       executableFile,
       threeJsFile,
@@ -153,6 +157,12 @@ function TwinRegisterModal({
                 ))}
               </select>
             </label>
+
+            <ManagerSelectField
+              managerId={managerId}
+              onChange={setManagerId}
+              disabled={isSubmitting}
+            />
 
             <label className="twin-form__field twin-form__field--full">
               <span className="twin-field-label">설명</span>

@@ -12,7 +12,6 @@ import {
   type AdminItemsPageResult,
   type AdminItemSortOption,
   type CreateAdminItemInput,
-  type CreateUploadProgress,
   type UpdateAdminItemInput,
 } from '../types/adminItem';
 import { mapAdminDigitalTwinToAdminItem } from '../utils/adminItemMapper';
@@ -22,8 +21,9 @@ const SEARCH_ENDPOINT = '/api/admin/digital-twins/search';
 
 /**
  * Swagger sort 파라미터는 "property,(asc|desc)" 형식입니다.
- * 목록/검색 응답에는 syncRate 필드가 없어 sync-asc/sync-desc는 서버 정렬 대상이 없으므로
- * createdAt,desc로 대체합니다 (등록일 정렬만 실제로 서버에 반영됩니다).
+ * AdminItemSortOption은 서버가 실제로 지원하는 newest/oldest(createdAt 기준)만 남겨
+ * 두었습니다 — 그 외 정렬 옵션은 서버가 지원하지 않아 제공하지 않습니다
+ * (등록일순으로 몰래 대체하지 않습니다).
  */
 function mapSortToApi(sort: AdminItemSortOption | undefined): string[] {
   if (sort === 'oldest') {
@@ -33,25 +33,37 @@ function mapSortToApi(sort: AdminItemSortOption | undefined): string[] {
 }
 
 /**
- * category/status 필터는 Swagger 목록/검색 API에 파라미터가 없어 서버에 전달할 수 없습니다.
+ * category 필터는 Swagger 목록/검색 API에 파라미터가 없어 서버에 전달할 수 없습니다.
  * 따라서 현재 페이지로 반환된 데이터에 한해서만 클라이언트에서 필터링합니다.
- * (status는 서버 데이터가 아니라 더미 값이라, 실제 운영 상태 기준 필터링은 아닙니다.)
  */
 function filterFetchedItems(
   items: AdminItem[],
   params: AdminItemSearchParams,
 ): AdminItem[] {
   const category = params.category;
-  const status = params.status;
   return items.filter((item) => {
     if (category && category !== 'all' && item.category !== category) {
       return false;
     }
-    if (status && status !== 'all' && item.status !== status) {
-      return false;
-    }
     return true;
   });
+}
+
+/**
+ * 검색 조건은 title/id/managerName 중 하나입니다 (date는 제거됨).
+ * searchField로 선택된 항목 하나만 파라미터로 보냅니다 (여러 조건을 동시에 보내지 않음).
+ */
+function buildTwinSearchParam(
+  searchField: AdminItemSearchParams['searchField'],
+  keyword: string,
+): Record<string, string> {
+  if (searchField === 'id') {
+    return { id: keyword };
+  }
+  if (searchField === 'managerName') {
+    return { managerName: keyword };
+  }
+  return { title: keyword };
 }
 
 async function fetchAdminDigitalTwinPage(
@@ -60,10 +72,9 @@ async function fetchAdminDigitalTwinPage(
   const page = params.page ?? 0;
   const size = params.size ?? 20;
   const sort = mapSortToApi(params.sort);
-  const title = params.keyword?.trim();
-  const date = params.registeredAt?.trim();
+  const keyword = params.keyword?.trim();
 
-  const useSearch = Boolean(title || date);
+  const useSearch = Boolean(keyword);
   const endpoint = useSearch ? SEARCH_ENDPOINT : LIST_ENDPOINT;
 
   const queryParams: Record<string, string | number | string[]> = {
@@ -71,13 +82,11 @@ async function fetchAdminDigitalTwinPage(
     size,
     sort,
   };
-  if (useSearch) {
-    if (title) {
-      queryParams.title = title;
-    }
-    if (date) {
-      queryParams.date = date;
-    }
+  if (useSearch && keyword) {
+    Object.assign(
+      queryParams,
+      buildTwinSearchParam(params.searchField ?? 'title', keyword),
+    );
   }
 
   const response = await client.get<
@@ -88,7 +97,7 @@ async function fetchAdminDigitalTwinPage(
 }
 
 /**
- * Swagger: GET /api/admin/digital-twins (또는 title/date 조건이 있으면 /search)
+ * Swagger: GET /api/admin/digital-twins (또는 title/id/managerName 조건이 있으면 /search)
  */
 export async function fetchAdminItems(
   params: AdminItemSearchParams = {},
@@ -169,29 +178,18 @@ export async function createAdminItem(
 
 /**
  * Swagger: PUT /api/admin/digital-twins/{id} (multipart/form-data)
- * 파일 필드를 생략하면 서버가 기존 파일을 유지합니다.
- * axios의 onUploadProgress는 요청 전체 진행률만 제공하므로, 기존 UI의
- * 이미지/실행파일 두 개의 진행바에는 동일한 값을 반영합니다.
+ * 트윈 수정 모달은 파일 업로드를 지원하지 않으므로(Figma 기준) 진행률 콜백 없이
+ * 단순 요청/응답으로 처리합니다. 파일 필드가 없으면 서버가 기존 파일을 유지합니다.
  */
 export async function updateAdminItem(
   input: UpdateAdminItemInput,
-  onProgress: (progress: CreateUploadProgress) => void,
 ): Promise<void> {
   const formData = buildUpdateAdminItemFormData(input);
-
-  onProgress({ image: 0, executable: 0, overall: 0 });
 
   await client.put(`${LIST_ENDPOINT}/${input.id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 0,
-    onUploadProgress: (event) => {
-      const total = event.total ?? event.loaded;
-      const percent = total > 0 ? Math.round((event.loaded / total) * 100) : 0;
-      onProgress({ image: percent, executable: percent, overall: percent });
-    },
   });
-
-  onProgress({ image: 100, executable: 100, overall: 100 });
 }
 
 /**
