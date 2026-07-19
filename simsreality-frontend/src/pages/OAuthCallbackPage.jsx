@@ -43,7 +43,7 @@ function OAuthCallbackPage() {
       })
       .catch(() => {
         clearAccessToken();
-        navigate('/sso?error=login_required', { replace: true });
+        navigate('/?error=login_required', { replace: true });
       });
 
     return () => timers.forEach(clearTimeout);

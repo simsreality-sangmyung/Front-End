@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getAccessToken, clearAccessToken } from './auth/tokenStore';
 import { refreshAccessToken } from './auth/refresh';
+import { USER_DASHBOARD_URL } from '../navigation/externalLinks';
 
 // 백엔드 오리진(BASE). 엔드포인트 상수들이 '/api/...' 전체 경로를 포함한다.
 const client = axios.create({
@@ -28,7 +29,6 @@ client.interceptors.response.use(
     const status = error.response?.status;
 
     // accessToken 만료(401)면 reissue 후 1회 재시도. (_retry 로 무한루프 방지)
-    // 403(권한 부족)은 인증 문제가 아니므로 reissue 하지 않는다.
     if (status === 401 && original && !original._retry) {
       original._retry = true;
       try {
@@ -40,6 +40,13 @@ client.interceptors.response.use(
         clearAccessToken();
         return Promise.reject(refreshError);
       }
+    }
+
+    // 403(권한 부족) = 로그인은 됐으나 관리자 권한이 없음.
+    // 관리자 앱이므로 유저 대시보드로 돌려보낸다. (권한 판단은 BE 가 단독으로 담당)
+    if (status === 403) {
+      window.location.assign(USER_DASHBOARD_URL);
+      return new Promise(() => {}); // 페이지 이동 중 — 이후 처리를 멈춘다
     }
 
     return Promise.reject(error);

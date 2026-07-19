@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { hasAppEntered } from '../navigation/sessionEntry';
 
-const PUBLIC_PATHS = new Set(['/', '/auth/callback', '/sso']);
+const PUBLIC_PATHS = new Set(['/', '/auth/callback']);
 
 function SessionLandingGate() {
   const location = useLocation();

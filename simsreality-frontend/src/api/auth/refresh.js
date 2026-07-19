@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { AUTH_ENDPOINTS } from '../endpoints';
 import { setAccessToken, clearAccessToken } from './tokenStore';
-import { getDevAccessTokenOverride } from './devToken';
 
 /**
  * refresh_token(HttpOnly 쿠키)으로 accessToken 을 재발급한다.
@@ -23,14 +22,10 @@ export function refreshAccessToken() {
   inflight = axios
     .post(`${BASE_URL}${AUTH_ENDPOINTS.REISSUE}`, null, { withCredentials: true })
     .then((response) => {
-      const reissued = response.data?.data?.accessToken;
-      if (!reissued) {
+      const token = response.data?.data?.accessToken;
+      if (!token) {
         throw new Error('reissue 응답에 accessToken 이 없습니다.');
       }
-      // 개발 모드에서는 권한 없는 실제 토큰 대신 SUPER 더미 토큰을 저장한다.
-      // 콜백 페이지가 아니라 여기서 덮어써야 401 인터셉터의 재발급 경로에서도
-      // 더미 토큰이 유지된다(콜백에서만 덮으면 재발급 시 실제 토큰으로 롤백됨).
-      const token = getDevAccessTokenOverride() ?? reissued;
       setAccessToken(token);
       return token;
     })

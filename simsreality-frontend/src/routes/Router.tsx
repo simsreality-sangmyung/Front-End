@@ -1,8 +1,8 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ErrorFallback from '../ErrorFallback';
 import RootLayout from '../components/RootLayout';
+import RequireAuth from '../components/RequireAuth';
 import LandingPage from '../pages/LandingPage';
-import SsoPage from '../pages/SsoPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 import AdminLayout from '../components/layout/AdminLayout';
 import AdminPage from '../pages/AdminPage';
@@ -23,35 +23,36 @@ const router = createBrowserRouter([
         element: <LandingPage />,
       },
       {
-        path: 'sso',
-        element: <SsoPage />,
-      },
-      {
         path: 'auth/callback',
         element: <OAuthCallbackPage />,
       },
     ],
   },
-  // 관리자 화면 (사이드바 레이아웃)
+  // 관리자 화면 (로그인 필수 — RequireAuth 가드 + 사이드바 레이아웃)
   {
-    path: '/',
-    element: <AdminLayout />,
+    element: <RequireAuth />,
     children: [
       {
-        path: 'admin',
-        element: <AdminPage />,
-      },
-      {
-        path: 'dashboard',
-        element: <DashboardPage />,
-      },
-      {
-        path: 'users',
-        element: <UserManagementPage />,
-      },
-      {
-        path: 'settings',
-        element: <SettingsPage />,
+        path: '/',
+        element: <AdminLayout />,
+        children: [
+          {
+            path: 'admin',
+            element: <AdminPage />,
+          },
+          {
+            path: 'dashboard',
+            element: <DashboardPage />,
+          },
+          {
+            path: 'users',
+            element: <UserManagementPage />,
+          },
+          {
+            path: 'settings',
+            element: <SettingsPage />,
+          },
+        ],
       },
     ],
   },
