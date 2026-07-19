@@ -1,28 +1,71 @@
 import client from './client';
 import { mockDashboardExtras } from '../mocks/dashboard';
-import type { ApiResponse, DashboardData, DashboardStats } from '../types/dashboard';
+import type {
+  ActivityPoint,
+  ApiResponse,
+  DailyVisitorResponse,
+  DashboardData,
+  DashboardResponse,
+  DashboardStats,
+} from '../types/dashboard';
 
 /**
- * GET /api/admin/dashboard — 통계 카드 4개(전체 트윈 수/이번 달 신규 수/전체 방문자 수/
- * 로그인 방문자 수)를 실제 API로 조회합니다(curl로 확인된 필드명).
+ * Swagger: dailyVisitors → ActivityChart용 ActivityPoint로 매핑합니다.
+ * - day: Figma x축("1일" … "14일")에 맞춰 순번 라벨
+ * - totalVisitors ← totalCount
+ * - loggedInUsers ← loggedInCount
+ * 응답에 필드가 없거나 빈 배열이면 빈 배열을 반환해 차트가 깨지지 않게 합니다.
  */
-export async function fetchDashboardStats(): Promise<DashboardStats> {
-  const response = await client.get<ApiResponse<DashboardStats>>(
+function mapDailyVisitorsToActivity(
+  dailyVisitors: DailyVisitorResponse[] | null | undefined,
+): ActivityPoint[] {
+  if (!Array.isArray(dailyVisitors) || dailyVisitors.length === 0) {
+    return [];
+  }
+
+  return dailyVisitors.map((item, index) => ({
+    day: `${index + 1}일`,
+    totalVisitors: Number(item?.totalCount) || 0,
+    loggedInUsers: Number(item?.loggedInCount) || 0,
+  }));
+}
+
+/**
+ * GET /api/admin/dashboard — DashboardResponse (Swagger 확인).
+ */
+export async function fetchDashboardResponse(): Promise<DashboardResponse> {
+  const response = await client.get<ApiResponse<DashboardResponse>>(
     '/api/admin/dashboard',
   );
   return response.data.data;
 }
 
 /**
+ * 통계 카드용 — totalTwinCount / thisMonthNewTwinCount (실 API, 기존 연동 유지).
+ */
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  const data = await fetchDashboardResponse();
+  return {
+    totalTwinCount: data.totalTwinCount ?? 0,
+    thisMonthNewTwinCount: data.thisMonthNewTwinCount ?? 0,
+  };
+}
+
+/**
  * 대시보드 화면 데이터.
- * - stats: 실제 API(GET /api/admin/dashboard)
- * - activity(방문자 그래프)/recentAlerts(최근 알림)/twins(트윈 목록): 대응하는 응답
- *   필드가 없어 기존 더미 데이터를 그대로 유지합니다.
+ * - stats: 실 API (totalTwinCount / thisMonthNewTwinCount)
+ * - activity: 실 API dailyVisitors 매핑
+ * - recentAlerts / twins: 대응 API 없어 mock 유지
  */
 export async function fetchDashboardData(): Promise<DashboardData> {
-  const stats = await fetchDashboardStats();
+  const data = await fetchDashboardResponse();
+
   return {
-    stats,
+    stats: {
+      totalTwinCount: data.totalTwinCount ?? 0,
+      thisMonthNewTwinCount: data.thisMonthNewTwinCount ?? 0,
+    },
+    activity: mapDailyVisitorsToActivity(data.dailyVisitors),
     ...mockDashboardExtras,
   };
 }

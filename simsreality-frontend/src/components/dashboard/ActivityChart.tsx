@@ -2,7 +2,7 @@ import { useRef, useState, type MouseEvent } from 'react';
 import type { ActivityPoint } from '../../types/dashboard';
 
 interface ActivityChartProps {
-  /** 실제 일별 방문자 추이 API가 없어 mocks/dashboard.ts의 mock 데이터를 사용합니다. */
+  /** GET /api/admin/dashboard 의 dailyVisitors를 매핑한 데이터 */
   data: ActivityPoint[];
 }
 
@@ -11,8 +11,25 @@ const HEIGHT = 260;
 const PADDING = { top: 10, right: 12, bottom: 26, left: 34 };
 const PLOT_WIDTH = WIDTH - PADDING.left - PADDING.right;
 const PLOT_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom;
-const Y_MAX = 100;
-const Y_TICKS = [0, 20, 40, 60, 80];
+
+function buildYScale(data: ActivityPoint[]): { yMax: number; yTicks: number[] } {
+  const peak = data.reduce(
+    (max, point) => Math.max(max, point.totalVisitors, point.loggedInUsers),
+    0,
+  );
+
+  if (peak <= 0) {
+    return { yMax: 100, yTicks: [0, 20, 40, 60, 80] };
+  }
+
+  const rough = Math.ceil(peak * 1.15);
+  const step = Math.max(1, Math.ceil(rough / 4));
+  const yMax = step * 4;
+  return {
+    yMax,
+    yTicks: [0, step, step * 2, step * 3, step * 4].filter((tick) => tick < yMax),
+  };
+}
 
 function xForIndex(index: number, total: number): number {
   if (total <= 1) {
@@ -21,8 +38,8 @@ function xForIndex(index: number, total: number): number {
   return PADDING.left + (index / (total - 1)) * PLOT_WIDTH;
 }
 
-function yForValue(value: number): number {
-  return PADDING.top + PLOT_HEIGHT - (Math.min(value, Y_MAX) / Y_MAX) * PLOT_HEIGHT;
+function yForValue(value: number, yMax: number): number {
+  return PADDING.top + PLOT_HEIGHT - (Math.min(value, yMax) / yMax) * PLOT_HEIGHT;
 }
 
 function buildSmoothPath(points: { x: number; y: number }[]): string {
@@ -59,19 +76,21 @@ function buildSmoothAreaPath(points: { x: number; y: number }[], baseline: numbe
 function ActivityChart({ data }: ActivityChartProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const safeData = Array.isArray(data) ? data : [];
+  const { yMax, yTicks } = buildYScale(safeData);
 
-  const totalVisitorPoints = data.map((point, index) => ({
-    x: xForIndex(index, data.length),
-    y: yForValue(point.totalVisitors),
+  const totalVisitorPoints = safeData.map((point, index) => ({
+    x: xForIndex(index, safeData.length),
+    y: yForValue(point.totalVisitors, yMax),
   }));
-  const loggedInUserPoints = data.map((point, index) => ({
-    x: xForIndex(index, data.length),
-    y: yForValue(point.loggedInUsers),
+  const loggedInUserPoints = safeData.map((point, index) => ({
+    x: xForIndex(index, safeData.length),
+    y: yForValue(point.loggedInUsers, yMax),
   }));
 
   const handlePointerMove = (event: MouseEvent<SVGRectElement>) => {
     const svg = svgRef.current;
-    if (!svg || data.length === 0) {
+    if (!svg || safeData.length === 0) {
       return;
     }
     const rect = svg.getBoundingClientRect();
@@ -81,8 +100,8 @@ function ActivityChart({ data }: ActivityChartProps) {
     const fractionX = (event.clientX - rect.left) / rect.width;
     const viewBoxX = fractionX * WIDTH;
     const ratio = (viewBoxX - PADDING.left) / PLOT_WIDTH;
-    const index = Math.round(ratio * (data.length - 1));
-    const clamped = Math.min(Math.max(index, 0), data.length - 1);
+    const index = Math.round(ratio * (safeData.length - 1));
+    const clamped = Math.min(Math.max(index, 0), safeData.length - 1);
     setHoveredIndex(clamped);
   };
 
@@ -90,15 +109,25 @@ function ActivityChart({ data }: ActivityChartProps) {
     setHoveredIndex(null);
   };
 
-  const hoveredPoint = hoveredIndex !== null ? data[hoveredIndex] : null;
-  const hoveredTotalVisitorPoint = hoveredIndex !== null ? totalVisitorPoints[hoveredIndex] : null;
-  const hoveredLoggedInUserPoint = hoveredIndex !== null ? loggedInUserPoints[hoveredIndex] : null;
+  const hoveredPoint = hoveredIndex !== null ? safeData[hoveredIndex] : null;
+  const hoveredTotalVisitorPoint =
+    hoveredIndex !== null ? totalVisitorPoints[hoveredIndex] : null;
+  const hoveredLoggedInUserPoint =
+    hoveredIndex !== null ? loggedInUserPoints[hoveredIndex] : null;
 
-  const tooltipLeftPercent = hoveredTotalVisitorPoint ? (hoveredTotalVisitorPoint.x / WIDTH) * 100 : 0;
-  const tooltipTopPercent = hoveredTotalVisitorPoint
-    ? (Math.min(hoveredTotalVisitorPoint.y, hoveredLoggedInUserPoint?.y ?? hoveredTotalVisitorPoint.y) / HEIGHT) * 100
+  const tooltipLeftPercent = hoveredTotalVisitorPoint
+    ? (hoveredTotalVisitorPoint.x / WIDTH) * 100
     : 0;
-  const tooltipAlign = tooltipLeftPercent > 75 ? 'right' : tooltipLeftPercent < 15 ? 'left' : 'center';
+  const tooltipTopPercent = hoveredTotalVisitorPoint
+    ? (Math.min(
+        hoveredTotalVisitorPoint.y,
+        hoveredLoggedInUserPoint?.y ?? hoveredTotalVisitorPoint.y,
+      ) /
+        HEIGHT) *
+      100
+    : 0;
+  const tooltipAlign =
+    tooltipLeftPercent > 75 ? 'right' : tooltipLeftPercent < 15 ? 'left' : 'center';
 
   return (
     <section className="twin-card dashboard-panel dashboard-chart-panel">
@@ -135,8 +164,8 @@ function ActivityChart({ data }: ActivityChartProps) {
             </linearGradient>
           </defs>
 
-          {Y_TICKS.map((tick) => {
-            const y = yForValue(tick);
+          {yTicks.map((tick) => {
+            const y = yForValue(tick, yMax);
             return (
               <g key={tick}>
                 <line
@@ -160,11 +189,11 @@ function ActivityChart({ data }: ActivityChartProps) {
             );
           })}
 
-          {data.map((point, index) => {
-            const x = xForIndex(index, data.length);
+          {safeData.map((point, index) => {
+            const x = xForIndex(index, safeData.length);
             return (
               <text
-                key={point.day}
+                key={`${point.day}-${index}`}
                 x={x}
                 y={HEIGHT - 6}
                 textAnchor="middle"
@@ -175,26 +204,30 @@ function ActivityChart({ data }: ActivityChartProps) {
             );
           })}
 
-          <path
-            d={buildSmoothAreaPath(totalVisitorPoints, HEIGHT - PADDING.bottom)}
-            fill="url(#activityChartFill)"
-            stroke="none"
-          />
-          <path
-            d={buildSmoothPath(loggedInUserPoints)}
-            fill="none"
-            stroke="var(--twin-amber)"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            opacity={0.85}
-          />
-          <path
-            d={buildSmoothPath(totalVisitorPoints)}
-            fill="none"
-            stroke="var(--twin-accent)"
-            strokeWidth={2}
-            strokeLinecap="round"
-          />
+          {safeData.length > 0 ? (
+            <>
+              <path
+                d={buildSmoothAreaPath(totalVisitorPoints, HEIGHT - PADDING.bottom)}
+                fill="url(#activityChartFill)"
+                stroke="none"
+              />
+              <path
+                d={buildSmoothPath(loggedInUserPoints)}
+                fill="none"
+                stroke="var(--twin-amber)"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                opacity={0.85}
+              />
+              <path
+                d={buildSmoothPath(totalVisitorPoints)}
+                fill="none"
+                stroke="var(--twin-accent)"
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </>
+          ) : null}
 
           {hoveredTotalVisitorPoint && hoveredLoggedInUserPoint ? (
             <g className="dashboard-chart__crosshair">
@@ -207,8 +240,18 @@ function ActivityChart({ data }: ActivityChartProps) {
                 strokeWidth={1}
                 strokeDasharray="3 3"
               />
-              <circle cx={hoveredTotalVisitorPoint.x} cy={hoveredTotalVisitorPoint.y} r={4} fill="var(--twin-accent)" />
-              <circle cx={hoveredLoggedInUserPoint.x} cy={hoveredLoggedInUserPoint.y} r={4} fill="var(--twin-amber)" />
+              <circle
+                cx={hoveredTotalVisitorPoint.x}
+                cy={hoveredTotalVisitorPoint.y}
+                r={4}
+                fill="var(--twin-accent)"
+              />
+              <circle
+                cx={hoveredLoggedInUserPoint.x}
+                cy={hoveredLoggedInUserPoint.y}
+                r={4}
+                fill="var(--twin-amber)"
+              />
             </g>
           ) : null}
 
@@ -222,6 +265,10 @@ function ActivityChart({ data }: ActivityChartProps) {
             onMouseLeave={handlePointerLeave}
           />
         </svg>
+
+        {safeData.length === 0 ? (
+          <p className="dashboard-chart__empty">표시할 방문자 데이터가 없습니다.</p>
+        ) : null}
 
         {hoveredPoint ? (
           <div
