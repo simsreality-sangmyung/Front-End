@@ -1,84 +1,37 @@
 import { Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
-import type {
-  AdminItemSearchField,
-  AdminItemSearchParams,
-} from '../../types/adminItem';
+import type { AdminItemSearchParams } from '../../types/adminItem';
 
 interface AdminSearchFormProps {
   initialParams: AdminItemSearchParams;
   onSearch: (params: AdminItemSearchParams) => void;
 }
 
-const SEARCH_FIELD_OPTIONS: {
-  value: AdminItemSearchField;
-  label: string;
-  placeholder: string;
-}[] = [
-  { value: 'title', label: '제목', placeholder: '트윈 제목으로 검색...' },
-  { value: 'id', label: '트윈 ID', placeholder: '트윈 ID로 검색...' },
-  { value: 'managerName', label: '담당자명', placeholder: '담당자명으로 검색...' },
-];
-
 function AdminSearchForm({ initialParams, onSearch }: AdminSearchFormProps) {
   const [keyword, setKeyword] = useState(initialParams.keyword ?? '');
-  const [searchField, setSearchField] = useState<AdminItemSearchField>(
-    initialParams.searchField ?? 'title',
-  );
   const category = initialParams.category ?? 'all';
-
-  const activeOption =
-    SEARCH_FIELD_OPTIONS.find((option) => option.value === searchField) ??
-    SEARCH_FIELD_OPTIONS[0];
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSearch({
-      keyword: keyword.trim() || undefined,
-      searchField,
-      category,
-    });
-  };
-
-  const handleSearchFieldChange = (value: AdminItemSearchField) => {
-    setSearchField(value);
-    onSearch({
-      keyword: keyword.trim() || undefined,
-      searchField: value,
-      category,
-    });
+    onSearch({ keyword: keyword.trim() || undefined, category });
   };
 
   return (
-    <section className="twin-search">
+    <section className="mb-6 font-['Rajdhani',sans-serif]">
       <form onSubmit={handleSubmit}>
-        <div className="twin-search__row">
-          <div className="twin-search__input-wrap">
-            <Search size={14} className="twin-search__input-icon" />
-            <input
-              className="twin-search__input"
-              type="text"
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-              placeholder={activeOption.placeholder}
-            />
-          </div>
-        </div>
-        <div className="twin-search__row twin-search__row--tabs">
-          <div className="twin-pill-group">
-            {SEARCH_FIELD_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`twin-pill${
-                  searchField === option.value ? ' twin-pill--active' : ''
-                }`}
-                onClick={() => handleSearchFieldChange(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <input
+            className="w-full pl-11 pr-4 py-3 rounded-xl text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#00d4ff]/50 transition-colors font-['JetBrains_Mono',monospace]"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+            type="text"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="트윈 이름, ID, 담당자, 유형 검색..."
+          />
         </div>
       </form>
     </section>

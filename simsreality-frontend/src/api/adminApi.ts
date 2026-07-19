@@ -11,6 +11,7 @@ import {
   type AdminItemSearchParams,
   type AdminItemsPageResult,
   type AdminItemSortOption,
+  type AdminTwinDetail,
   type CreateAdminItemInput,
   type UpdateAdminItemInput,
 } from '../types/adminItem';
@@ -21,15 +22,20 @@ const SEARCH_ENDPOINT = '/api/admin/digital-twins/search';
 
 /**
  * Swagger sort 파라미터는 "property,(asc|desc)" 형식입니다.
- * AdminItemSortOption은 서버가 실제로 지원하는 newest/oldest(createdAt 기준)만 남겨
- * 두었습니다 — 그 외 정렬 옵션은 서버가 지원하지 않아 제공하지 않습니다
- * (등록일순으로 몰래 대체하지 않습니다).
+ * 등록일(createdAt)·트윈 이름(title) 정렬을 지원하며, 정렬 안정화를 위해 id 를 함께 보냅니다.
  */
 function mapSortToApi(sort: AdminItemSortOption | undefined): string[] {
-  if (sort === 'oldest') {
-    return ['createdAt,asc'];
+  switch (sort) {
+    case 'oldest':
+      return ['createdAt,asc', 'id,asc'];
+    case 'name-asc':
+      return ['title,asc', 'id,asc'];
+    case 'name-desc':
+      return ['title,desc', 'id,desc'];
+    case 'newest':
+    default:
+      return ['createdAt,desc', 'id,desc'];
   }
-  return ['createdAt,desc'];
 }
 
 /**
@@ -49,23 +55,6 @@ function filterFetchedItems(
   });
 }
 
-/**
- * 검색 조건은 title/id/managerName 중 하나입니다 (date는 제거됨).
- * searchField로 선택된 항목 하나만 파라미터로 보냅니다 (여러 조건을 동시에 보내지 않음).
- */
-function buildTwinSearchParam(
-  searchField: AdminItemSearchParams['searchField'],
-  keyword: string,
-): Record<string, string> {
-  if (searchField === 'id') {
-    return { id: keyword };
-  }
-  if (searchField === 'managerName') {
-    return { managerName: keyword };
-  }
-  return { title: keyword };
-}
-
 async function fetchAdminDigitalTwinPage(
   params: AdminItemSearchParams,
 ): Promise<PageResponseAdminDigitalTwinListResponse> {
@@ -82,11 +71,9 @@ async function fetchAdminDigitalTwinPage(
     size,
     sort,
   };
+  // 통합 검색: 하나의 keyword 로 제목/장소/담당자명/ID/유형을 OR 검색 (BE 처리)
   if (useSearch && keyword) {
-    Object.assign(
-      queryParams,
-      buildTwinSearchParam(params.searchField ?? 'title', keyword),
-    );
+    queryParams.keyword = keyword;
   }
 
   const response = await client.get<
@@ -197,6 +184,30 @@ export async function updateAdminItem(
  */
 export async function deleteAdminItem(id: number): Promise<void> {
   await client.delete(`${LIST_ENDPOINT}/${id}`);
+}
+
+interface TwinDetailApiResponse {
+  description: string | null;
+  imageFileName: string | null;
+  modelFileName: string | null;
+  executableFileKey: string | null;
+}
+
+/**
+ * 수정 모달용 상세 조회 (GET /api/digital-twins/{id}).
+ * 목록에 없는 설명·현재 파일명을 채우기 위해 사용합니다.
+ */
+export async function fetchAdminTwinDetail(id: number): Promise<AdminTwinDetail> {
+  const response = await client.get<ApiResponse<TwinDetailApiResponse>>(
+    `/api/digital-twins/${id}`,
+  );
+  const detail = response.data.data;
+  return {
+    description: detail.description ?? '',
+    imageFileName: detail.imageFileName ?? null,
+    modelFileName: detail.modelFileName ?? null,
+    executableFileName: detail.executableFileKey ?? null,
+  };
 }
 
 export const adminItemsQueryKey = (params: AdminItemSearchParams) =>

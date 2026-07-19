@@ -21,10 +21,13 @@ function ManagerSelectField({
   const { data: managerOptions = [], isLoading, isError } = useManagerOptions();
 
   return (
-    <label className="twin-form__field">
-      <span className="twin-field-label">담당자</span>
+    <label className="block">
+      <span className="block text-xs text-white/40 mb-1.5 font-['JetBrains_Mono',monospace]">
+        담당자
+      </span>
       <select
-        className="twin-control"
+        className="w-full px-3 py-2.5 rounded-xl text-sm text-white focus:outline-none focus:border-[#00d4ff]/50 transition-colors disabled:opacity-50"
+        style={{ background: '#0a1a2e', border: '1px solid rgba(255,255,255,0.1)' }}
         value={managerId !== null ? String(managerId) : ''}
         onChange={(event) =>
           onChange(event.target.value ? Number(event.target.value) : null)
@@ -39,11 +42,13 @@ function ManagerSelectField({
         ))}
       </select>
       {isError && (
-        <span className="twin-form__file-name">
+        <span className="block mt-1 text-xs text-[#ff4466]/80">
           담당자 목록을 불러오지 못했습니다.
         </span>
       )}
-      {helperText && <span className="twin-form__file-name">{helperText}</span>}
+      {helperText && (
+        <span className="block mt-1 text-xs text-white/30">{helperText}</span>
+      )}
     </label>
   );
 }

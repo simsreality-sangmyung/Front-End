@@ -18,7 +18,6 @@ import type {
   AdminItemSortOption,
 } from '../types/adminItem';
 import { getApiErrorMessage } from '../utils/apiError';
-import { sortAdminItems } from '../utils/sortAdminItems';
 import '../styles/twinDesignSystem.css';
 import './AdminPage.css';
 
@@ -55,10 +54,8 @@ function AdminPage() {
 
   const totalPages = Math.max(1, pageData?.totalPages ?? 1);
 
-  const items = useMemo(() => pageData?.items ?? [], [pageData]);
-  // 서버가 등록일 기준(newest/oldest)으로만 응답을 정렬해주므로, 같은 기준으로 클라이언트
-  // 에서도 한 번 더 정렬해 정확도를 보장합니다.
-  const sortedItems = useMemo(() => sortAdminItems(items, sort), [items, sort]);
+  // 서버가 등록일(newest/oldest)·트윈 이름(name-asc/desc) 정렬을 처리하므로 그대로 사용합니다.
+  const sortedItems = useMemo(() => pageData?.items ?? [], [pageData]);
 
   const listErrorMessage = isError
     ? getApiErrorMessage(listError, '목록을 불러오지 못했습니다.')
@@ -181,19 +178,22 @@ function AdminPage() {
   };
 
   return (
-    <main className="admin-page">
-      <header className="admin-page__header">
+    <main className="min-h-screen overflow-auto p-8 bg-[#020b18] text-white font-['Rajdhani',sans-serif]">
+      <header className="flex items-center justify-between mb-8">
         <div>
-          <p className="admin-page__eyebrow">// TWIN MANAGEMENT</p>
-          <h1>디지털트윈 관리</h1>
+          <p className="text-[#00d4ff] text-[10px] tracking-[0.2em] font-['JetBrains_Mono',monospace] mb-1">
+            // TWIN MANAGEMENT
+          </p>
+          <h1 className="text-3xl font-bold tracking-wide">디지털트윈 관리</h1>
         </div>
         <button
           type="button"
-          className="twin-btn twin-btn--primary admin-page__register-btn"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold tracking-wider text-sm text-[#020b18] transition-transform hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+          style={{ background: '#00d4ff' }}
           onClick={handleRegisterClick}
           disabled={createMutation.isPending || updateMutation.isPending}
         >
-          <Plus size={14} strokeWidth={2.5} />
+          <Plus size={16} strokeWidth={2.5} />
           트윈 등록
         </button>
       </header>
@@ -226,15 +226,39 @@ function AdminPage() {
       )}
 
       {createSuccessMessage && (
-        <p className="admin-page__success twin-card">{createSuccessMessage}</p>
+        <p
+          className="mb-4 px-4 py-3 rounded-xl text-sm text-[#00ff88]"
+          style={{
+            background: 'rgba(0,255,136,0.08)',
+            border: '1px solid rgba(0,255,136,0.25)',
+          }}
+        >
+          {createSuccessMessage}
+        </p>
       )}
 
       {updateErrorMessage && (
-        <p className="admin-page__error twin-card">{updateErrorMessage}</p>
+        <p
+          className="mb-4 px-4 py-3 rounded-xl text-sm text-[#ff4466]"
+          style={{
+            background: 'rgba(255,68,102,0.08)',
+            border: '1px solid rgba(255,68,102,0.25)',
+          }}
+        >
+          {updateErrorMessage}
+        </p>
       )}
 
       {deleteErrorMessage && (
-        <p className="admin-page__error twin-card">{deleteErrorMessage}</p>
+        <p
+          className="mb-4 px-4 py-3 rounded-xl text-sm text-[#ff4466]"
+          style={{
+            background: 'rgba(255,68,102,0.08)',
+            border: '1px solid rgba(255,68,102,0.25)',
+          }}
+        >
+          {deleteErrorMessage}
+        </p>
       )}
 
       <AdminItemTable
@@ -249,6 +273,12 @@ function AdminPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+
+      {!isLoading && !isError && sortedItems.length > 0 && (
+        <p className="mt-4 text-white/20 text-xs font-['JetBrains_Mono',monospace]">
+          전체 {pageData?.totalElements ?? sortedItems.length}개
+        </p>
+      )}
 
       <AdminPagination
         currentPage={currentPage}

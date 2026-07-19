@@ -35,15 +35,11 @@ export interface AdminItem {
   executableFileName: string;
 }
 
-export type AdminItemSearchField = 'title' | 'id' | 'managerName';
-
 /**
- * 검색 조건 — date(등록일)는 제거되었고 id/managerName이 추가되었습니다.
- * searchField로 선택된 항목 하나만 서버로 전송합니다 (임의로 동시 전송하지 않음).
+ * 검색 조건 — keyword 하나로 제목/장소/담당자명/ID/유형을 통합 검색합니다 (BE OR 처리).
  */
 export interface AdminItemSearchParams {
   keyword?: string;
-  searchField?: AdminItemSearchField;
   category?: TwinCategory | 'all';
   /** 0-based (API 기준) */
   page?: number;
@@ -61,11 +57,13 @@ export interface AdminItemsPageResult {
 }
 
 /**
- * 서버가 등록일 기준 정렬만 지원합니다(GET /api/admin/digital-twins sort 파라미터).
- * 그 외 정렬 옵션은 서버가 지원하지 않으므로 제공하지 않습니다
- * (등록일순으로 몰래 대체하지 않고, 지원하지 않는 옵션 자체를 노출하지 않습니다).
+ * 서버가 등록일(createdAt)·트윈 이름(title) 정렬을 지원합니다(sort 파라미터).
  */
-export type AdminItemSortOption = 'newest' | 'oldest';
+export type AdminItemSortOption =
+  | 'newest'
+  | 'oldest'
+  | 'name-asc'
+  | 'name-desc';
 
 export const ADMIN_ITEM_SORT_OPTIONS: {
   value: AdminItemSortOption;
@@ -147,6 +145,22 @@ export interface UpdateAdminItemInput {
   managerId: number | null;
   /** API 스키마에 없는 필드 — 서버로 전송되지 않음(mock 값) */
   status: TwinStatus;
+  /** 파일은 새로 선택했을 때만 전송하며, 생략하면 서버가 기존 파일을 유지합니다. */
+  imageFile?: File | null;
+  executableFile?: File | null;
+  threeJsFile?: File | null;
+  modelFile?: File | null;
+}
+
+/**
+ * 수정 모달용 상세 (GET /api/digital-twins/{id}).
+ * 목록 응답에 없는 설명·현재 파일명을 채우기 위해 사용합니다.
+ */
+export interface AdminTwinDetail {
+  description: string;
+  imageFileName: string | null;
+  modelFileName: string | null;
+  executableFileName: string | null;
 }
 
 export function formatTwinId(id: number): string {
