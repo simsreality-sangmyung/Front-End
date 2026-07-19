@@ -1,26 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 
 :root {
-  /* 공통 다크 테마 토큰 (랜딩/SSO) */
-  --bg: #020617;
-  --card: #0f172a;
-  --border: #1e293b;
-  --border-strong: #334155;
+  /* 공통 다크 테마 토큰 (Figma 원본 팔레트) */
+  --bg: #040c18;
+  --card: #071222;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
   --text: #e2e8f0;
-  --text-h: #f3f4f6;
+  --text-h: #ffffff;
   --text-muted: #94a3b8;
-  --accent: #38bdf8;
-  --accent-bg: rgba(56, 189, 248, 0.15);
-  --accent-border: rgba(56, 189, 248, 0.5);
-  --accent-amber: #fbbf24;
+  --accent: #00d4ff;
+  --accent-bg: rgba(0, 212, 255, 0.12);
+  --accent-border: rgba(0, 212, 255, 0.3);
+  --accent-amber: #ff8c00;
 
-  --sans: 'Pretendard', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: 'Pretendard', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* 라틴은 Rajdhani, 한글은 Pretendard 로 폴백 (Figma 디자인 폰트) */
+  --sans: 'Rajdhani', 'Pretendard', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Rajdhani', 'Pretendard', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
 
   /* TWINOS admin dashboard design tokens (extracted from Figma) */
-  --twin-bg: #0a121f;
+  --twin-bg: #020b18;
   --twin-bg-elevated: #0d1420;
   --twin-sidebar-bg: #071121;
   --twin-input-bg: #0f1724;
@@ -29,18 +30,18 @@
   --twin-text: #eef2f8;
   --twin-text-muted: #7c8798;
   --twin-text-dim: #4d5766;
-  --twin-accent: #22d3ee;
+  --twin-accent: #00d4ff;
   --twin-accent-strong: #00d4ff;
-  --twin-accent-bg: rgba(34, 211, 238, 0.12);
-  --twin-accent-border: rgba(34, 211, 238, 0.35);
-  --twin-accent-ink: #04222b;
-  --twin-green: #34e0a1;
-  --twin-green-bg: rgba(52, 224, 161, 0.12);
-  --twin-amber: #f5b74a;
-  --twin-amber-bg: rgba(245, 183, 74, 0.12);
-  --twin-rose: #f16a8c;
-  --twin-rose-bg: rgba(241, 106, 140, 0.12);
-  --twin-danger: #f16a8c;
+  --twin-accent-bg: rgba(0, 212, 255, 0.12);
+  --twin-accent-border: rgba(0, 212, 255, 0.3);
+  --twin-accent-ink: #040c18;
+  --twin-green: #00ff88;
+  --twin-green-bg: rgba(0, 255, 136, 0.12);
+  --twin-amber: #ff8c00;
+  --twin-amber-bg: rgba(255, 140, 0, 0.1);
+  --twin-rose: #ff3b6b;
+  --twin-rose-bg: rgba(255, 59, 107, 0.1);
+  --twin-danger: #ff4466;
   --twin-violet: #8b7bf6;
   --twin-violet-bg: rgba(139, 123, 246, 0.14);
   --twin-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.45);
@@ -60,7 +61,8 @@ body {
   min-height: 100svh;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  /* 라틴 Rajdhani + 한글 Pretendard (Figma 디자인 폰트) */
+  font-family: 'Rajdhani', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
