@@ -10,16 +10,18 @@ interface SettingsSectionProps {
 
 function SettingsSection({ icon: Icon, eyebrow, title, children }: SettingsSectionProps) {
   return (
-    <section className="twin-card settings-section">
-      <div className="settings-section__header">
-        <Icon size={16} strokeWidth={2} className="settings-section__icon" />
+    <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden mb-5">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-white/8">
+        <Icon className="w-4 h-4 text-[#00d4ff]" strokeWidth={2} />
         <div>
-          <p className="settings-section__eyebrow">// {eyebrow}</p>
-          <h2 className="settings-section__title">{title}</h2>
+          <p className="text-[10px] text-[#00d4ff] font-['JetBrains_Mono',monospace] tracking-[0.2em]">
+            // {eyebrow}
+          </p>
+          <h2 className="text-base font-bold tracking-wide">{title}</h2>
         </div>
       </div>
-      <div className="settings-section__body">{children}</div>
-    </section>
+      <div className="divide-y divide-white/5">{children}</div>
+    </div>
   );
 }
 

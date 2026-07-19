@@ -8,12 +8,14 @@ interface SettingsRowProps {
 
 function SettingsRow({ label, description, children }: SettingsRowProps) {
   return (
-    <div className="settings-row">
-      <div className="settings-row__text">
-        <p className="settings-row__label">{label}</p>
-        {description ? <p className="settings-row__description">{description}</p> : null}
+    <div className="flex items-center justify-between px-6 py-4 gap-4">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold">{label}</p>
+        {description ? (
+          <p className="text-white/40 text-xs mt-0.5">{description}</p>
+        ) : null}
       </div>
-      <div className="settings-row__control">{children}</div>
+      {children}
     </div>
   );
 }
