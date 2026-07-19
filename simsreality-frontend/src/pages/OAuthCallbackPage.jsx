@@ -36,8 +36,9 @@ function OAuthCallbackPage() {
             window.location.replace(redirect);
             return;
           }
+          // redirect 없이 이 앱에서 직접 로그인한 경우 = 관리자 → 관리자 홈으로.
           markAppEntered();
-          navigate('/main', { replace: true });
+          navigate('/admin', { replace: true });
         }, 700);
       })
       .catch(() => {

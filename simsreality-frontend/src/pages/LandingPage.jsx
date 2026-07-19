@@ -4,21 +4,23 @@ import { Globe } from 'lucide-react';
 import SocialLoginButtons from '../components/SocialLoginButtons';
 import { useAuth } from '../hooks/useAuth';
 import { markAppEntered } from '../navigation/sessionEntry';
+import { USER_DASHBOARD_URL } from '../navigation/externalLinks';
 
 function LandingPage() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
 
+  // 이 앱(admin 도메인)에서 직접 로그인하는 대상은 관리자이므로 관리자 홈으로 보낸다.
   useEffect(() => {
     if (isLoggedIn) {
       markAppEntered();
-      navigate('/main', { replace: true });
+      navigate('/admin', { replace: true });
     }
   }, [isLoggedIn, navigate]);
 
+  // 둘러보기(비로그인) 화면은 다른 팀의 유저 대시보드가 담당한다.
   const handleBrowse = () => {
-    markAppEntered();
-    navigate('/main');
+    window.location.assign(USER_DASHBOARD_URL);
   };
 
   return (
