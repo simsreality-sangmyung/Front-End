@@ -7,10 +7,18 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 
 export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
 
-export const setAccessToken = (token) =>
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+function notifyAuthChange() {
+  window.dispatchEvent(new Event('auth-change'));
+}
 
-export const clearAccessToken = () =>
+export const setAccessToken = (token) => {
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  notifyAuthChange();
+};
+
+export const clearAccessToken = () => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
+  notifyAuthChange();
+};
 
 export const hasAccessToken = () => Boolean(getAccessToken());
