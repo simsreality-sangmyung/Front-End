@@ -6,6 +6,8 @@
     "module": "esnext",
     "types": ["vite/client"],
     "skipLibCheck": true,
+    /* 랜딩/SSO 영역은 JS(jsx)로 작성됨 — TS 앱에서 함께 빌드 */
+    "allowJs": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

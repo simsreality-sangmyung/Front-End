@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-// 백엔드 서버 URL — 디지털트윈 등록 API(POST /api/admin/digital-twins) 등에 사용됩니다.
-const DEFAULT_API_BASE_URL = 'http://101.79.21.134:8283';
+// 백엔드 오리진 — 이 클라이언트의 엔드포인트들은 '/api/...' 전체 경로를 포함하므로
+// '/api' 접미사가 없는 VITE_BACKEND_URL 을 사용한다. (VITE_API_BASE_URL 은 '/api' 포함 — client.js 참고)
+const DEFAULT_BACKEND_URL = 'http://localhost:8283';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL,
+  baseURL: import.meta.env.VITE_BACKEND_URL || DEFAULT_BACKEND_URL,
   timeout: 5000,
 });
 

@@ -5,7 +5,7 @@ import './Sidebar.css';
 const NAV_ITEMS = [
   { to: '/dashboard', label: '대시보드', icon: LayoutGrid },
   { to: '/users', label: '사용자 관리', icon: Users },
-  { to: '/', label: '트윈 관리', icon: Focus, end: true },
+  { to: '/admin', label: '트윈 관리', icon: Focus, end: true },
   { to: '/settings', label: '설정', icon: Settings },
 ];
 
@@ -14,7 +14,7 @@ function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar__brand">
         <Link
-          to="/landing"
+          to="/"
           className="sidebar__logo-icon"
           aria-label="메인 랜딩페이지로 이동"
         >
