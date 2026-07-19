@@ -5,6 +5,7 @@ import { CheckCircle, Globe } from 'lucide-react';
 import { refreshAccessToken } from '../api/auth/refresh';
 import { clearAccessToken } from '../api/auth/tokenStore';
 import { markAppEntered } from '../navigation/sessionEntry';
+import { consumePostLoginRedirect } from '../navigation/postLoginRedirect';
 
 const steps = ['인증 요청 중...', '계정 확인 중...', '세션 생성 중...', '완료'];
 
@@ -28,6 +29,13 @@ function OAuthCallbackPage() {
         setStep(3);
         setDone(true);
         setTimeout(() => {
+          // 외부 앱(유저 대시보드)에서 넘어온 로그인이면 원래 페이지로 복귀.
+          // 다른 도메인의 다른 앱이므로 react-router navigate 대신 전체 페이지 이동을 쓴다.
+          const redirect = consumePostLoginRedirect();
+          if (redirect) {
+            window.location.replace(redirect);
+            return;
+          }
           markAppEntered();
           navigate('/main', { replace: true });
         }, 700);

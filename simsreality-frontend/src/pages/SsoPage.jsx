@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { oauthAuthorizeUrl } from '../api/domains/authApi';
 import { Link } from 'react-router-dom';
+import { savePostLoginRedirect } from '../navigation/postLoginRedirect';
 
 const PROVIDERS = [
   {
@@ -51,6 +53,13 @@ const ERROR_MESSAGES = {
 function SsoPage() {
   const [searchParams] = useSearchParams();
   const error = searchParams.get('error');
+  const redirect = searchParams.get('redirect');
+
+  // 외부 앱(유저 대시보드)에서 넘어온 경우 로그인 후 복귀 주소를 보관.
+  // OAuth 왕복 동안 쿼리 파라미터가 유실되므로 sessionStorage에 저장한다.
+  useEffect(() => {
+    savePostLoginRedirect(redirect);
+  }, [redirect]);
 
   const handleLogin = (provider) => {
     window.location.assign(oauthAuthorizeUrl(provider));
