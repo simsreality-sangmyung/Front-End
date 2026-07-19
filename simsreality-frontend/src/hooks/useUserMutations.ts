@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  changeUserRole,
   deleteUser,
   updateUser,
   usersQueryKey,
   usersStatsQueryKey,
 } from '../api/userApi';
 import type {
-  CreateUserInput,
+  ChangeUserRoleInput,
   UpdateUserInput,
   UserSearchParams,
 } from '../types/user';
@@ -24,15 +25,11 @@ function invalidateUserQueries(
   queryClient.invalidateQueries({ queryKey: usersQueryKey(searchParams) });
 }
 
-/**
- * 사용자 초대 API가 아직 명세에 없어, 실제 서버 요청 없이 프론트 데모용으로
- * 성공 처리합니다(모달 닫힘/완료 안내는 화면에서 Figma와 동일하게 보여줍니다).
- */
-export function useCreateUser({ searchParams, onSuccess }: CommonOptions) {
+export function useUpdateUser({ searchParams, onSuccess }: CommonOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (_input: CreateUserInput) => Promise.resolve(),
+    mutationFn: (input: UpdateUserInput) => updateUser(input),
     onSuccess: () => {
       invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();
@@ -40,11 +37,12 @@ export function useCreateUser({ searchParams, onSuccess }: CommonOptions) {
   });
 }
 
-export function useUpdateUser({ searchParams, onSuccess }: CommonOptions) {
+/** 권한 변경 전용 — PATCH /api/admin/accounts/{id}/role (수정과 별개 API). */
+export function useChangeUserRole({ searchParams, onSuccess }: CommonOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateUserInput) => updateUser(input),
+    mutationFn: (input: ChangeUserRoleInput) => changeUserRole(input),
     onSuccess: () => {
       invalidateUserQueries(queryClient, searchParams);
       onSuccess?.();

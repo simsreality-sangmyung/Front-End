@@ -1,17 +1,19 @@
-import { Plus } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import AdminModal from '../components/admin/AdminModal';
 import AdminPagination from '../components/admin/AdminPagination';
 import UserEditForm from '../components/users/UserEditForm';
-import UserInviteForm from '../components/users/UserInviteForm';
+import UserRoleForm from '../components/users/UserRoleForm';
 import UserSearchForm from '../components/users/UserSearchForm';
 import UserTable from '../components/users/UserTable';
-import { useCreateUser, useDeleteUser, useUpdateUser } from '../hooks/useUserMutations';
+import {
+  useChangeUserRole,
+  useDeleteUser,
+  useUpdateUser,
+} from '../hooks/useUserMutations';
 import { useUsers } from '../hooks/useUsers';
 import type { User, UserSearchParams, UserSortOption } from '../types/user';
 import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/twinDesignSystem.css';
-import './UserManagementPage.css';
 
 const PAGE_SIZE = 5;
 
@@ -20,9 +22,8 @@ function UserManagementPage() {
   const [sort, setSort] = useState<UserSortOption>('joined-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [roleTargetUser, setRoleTargetUser] = useState<User | null>(null);
   const [mutatingId, setMutatingId] = useState<number | null>(null);
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [inviteSuccessMessage, setInviteSuccessMessage] = useState<string | null>(null);
 
   const listParams: UserSearchParams = {
     ...searchParams,
@@ -55,17 +56,14 @@ function UserManagementPage() {
     setCurrentPage(1);
   }, []);
 
-  const createMutation = useCreateUser({
-    searchParams: listParams,
-    onSuccess: () => {
-      setShowInviteForm(false);
-      setInviteSuccessMessage('초대를 완료했습니다.');
-    },
-  });
-
   const updateMutation = useUpdateUser({
     searchParams: listParams,
     onSuccess: () => setEditingUser(null),
+  });
+
+  const roleMutation = useChangeUserRole({
+    searchParams: listParams,
+    onSuccess: () => setRoleTargetUser(null),
   });
 
   const deleteMutation = useDeleteUser({
@@ -79,6 +77,10 @@ function UserManagementPage() {
     ? getApiErrorMessage(updateMutation.error, '사용자 수정에 실패했습니다.')
     : null;
 
+  const roleErrorMessage = roleMutation.isError
+    ? getApiErrorMessage(roleMutation.error, '권한 변경에 실패했습니다.')
+    : null;
+
   const deleteErrorMessage = deleteMutation.isError
     ? getApiErrorMessage(deleteMutation.error, '사용자 삭제에 실패했습니다.')
     : null;
@@ -87,13 +89,9 @@ function UserManagementPage() {
     setEditingUser(user);
   };
 
-  useEffect(() => {
-    if (!inviteSuccessMessage) {
-      return;
-    }
-    const timer = window.setTimeout(() => setInviteSuccessMessage(null), 3000);
-    return () => window.clearTimeout(timer);
-  }, [inviteSuccessMessage]);
+  const handleChangeRole = (user: User) => {
+    setRoleTargetUser(user);
+  };
 
   const handleDelete = (user: User) => {
     const confirmed = window.confirm(`"${user.name}" 사용자를 삭제하시겠습니까?`);
@@ -113,48 +111,53 @@ function UserManagementPage() {
   };
 
   return (
-    <main className="admin-page">
-      <header className="admin-page__header">
-        <div>
-          <p className="admin-page__eyebrow">// USER MANAGEMENT</p>
-          <h1>사용자 관리</h1>
-        </div>
-        <button
-          type="button"
-          className="twin-btn twin-btn--primary admin-page__register-btn"
-          onClick={() => setShowInviteForm(true)}
-        >
-          <Plus size={14} strokeWidth={2.5} />
-          사용자 초대
-        </button>
-      </header>
+    <main className="min-h-screen overflow-auto p-8 bg-[#020b18] text-white font-['Rajdhani',sans-serif]">
+      {/* Header */}
+      <div className="mb-8">
+        <p className="text-[#00d4ff] text-[10px] tracking-[0.2em] font-['JetBrains_Mono',monospace] mb-1">
+          // USER MANAGEMENT
+        </p>
+        <h1 className="text-3xl font-bold tracking-wide">사용자 관리</h1>
+      </div>
 
       <UserSearchForm initialParams={searchParams} onSearch={handleSearch} />
 
-      {showInviteForm && (
-        <AdminModal
-          onClose={() => {
-            if (!createMutation.isPending) {
-              setShowInviteForm(false);
-            }
+      {deleteErrorMessage && (
+        <p
+          className="mb-4 px-4 py-3 rounded-xl text-sm text-[#ff4466]"
+          style={{
+            background: 'rgba(255,68,102,0.08)',
+            border: '1px solid rgba(255,68,102,0.25)',
           }}
-          isCloseDisabled={createMutation.isPending}
         >
-          <UserInviteForm
-            isSubmitting={createMutation.isPending}
-            submitError={null}
-            onSubmit={(input) => createMutation.mutate(input)}
-            onCancel={() => setShowInviteForm(false)}
-          />
-        </AdminModal>
+          {deleteErrorMessage}
+        </p>
       )}
 
-      {inviteSuccessMessage && (
-        <p className="admin-page__success twin-card">{inviteSuccessMessage}</p>
-      )}
+      <UserTable
+        users={users}
+        totalCount={totalCount}
+        isLoading={isLoading}
+        isError={isError}
+        errorMessage={listErrorMessage}
+        isMutating={isMutating}
+        mutatingId={mutatingId}
+        sort={sort}
+        onSortChange={handleSortChange}
+        onChangeRole={handleChangeRole}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <AdminPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {editingUser && (
         <AdminModal
+          size="md"
           onClose={() => {
             if (!updateMutation.isPending) {
               setEditingUser(null);
@@ -173,29 +176,26 @@ function UserManagementPage() {
         </AdminModal>
       )}
 
-      {deleteErrorMessage && (
-        <p className="admin-page__error twin-card">{deleteErrorMessage}</p>
+      {roleTargetUser && (
+        <AdminModal
+          size="md"
+          onClose={() => {
+            if (!roleMutation.isPending) {
+              setRoleTargetUser(null);
+            }
+          }}
+          isCloseDisabled={roleMutation.isPending}
+        >
+          <UserRoleForm
+            key={roleTargetUser.id}
+            user={roleTargetUser}
+            isSubmitting={roleMutation.isPending}
+            submitError={roleErrorMessage}
+            onSubmit={(input) => roleMutation.mutate(input)}
+            onCancel={() => setRoleTargetUser(null)}
+          />
+        </AdminModal>
       )}
-
-      <UserTable
-        users={users}
-        totalCount={totalCount}
-        isLoading={isLoading}
-        isError={isError}
-        errorMessage={listErrorMessage}
-        isMutating={isMutating}
-        mutatingId={mutatingId}
-        sort={sort}
-        onSortChange={handleSortChange}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-
-      <AdminPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
     </main>
   );
 }

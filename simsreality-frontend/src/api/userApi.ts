@@ -6,6 +6,7 @@ import type {
   PageResponseAccountResponse,
 } from '../types/account';
 import type {
+  ChangeUserRoleInput,
   UpdateUserInput,
   User,
   UserSearchParams,
@@ -87,13 +88,13 @@ export async function fetchUsers(
 }
 
 /**
- * PUT /api/admin/accounts/{accountId} — status 제거, name만 수정 가능합니다.
+ * PATCH /api/admin/accounts/{accountId} — status 제거, name만 수정 가능합니다.
  */
 export async function updateAccount(
   accountId: number,
   body: AccountUpdateRequest,
 ): Promise<void> {
-  await client.put(`/api/admin/accounts/${accountId}`, body);
+  await client.patch(`/api/admin/accounts/${accountId}`, body);
 }
 
 /**
@@ -107,11 +108,17 @@ export async function changeAccountRole(
 }
 
 /**
- * 사용자 수정 — 이름(PUT)과 권한(PATCH /role)을 분리 호출합니다.
- * status 변경 요청은 API에서 제거되어 더 이상 보내지 않습니다.
+ * 사용자 수정 — 이름만 변경 (PATCH /api/admin/accounts/{id}).
+ * 권한 변경은 changeUserRole 로 분리되어 있습니다 (별도 API 재사용, BE 수정 불필요).
  */
 export async function updateUser(input: UpdateUserInput): Promise<void> {
   await updateAccount(input.id, { name: input.name });
+}
+
+/**
+ * 사용자 권한 변경 — role만 변경 (PATCH /api/admin/accounts/{id}/role).
+ */
+export async function changeUserRole(input: ChangeUserRoleInput): Promise<void> {
   await changeAccountRole(input.id, { role: mapUiRoleToApiRole(input.role) });
 }
 

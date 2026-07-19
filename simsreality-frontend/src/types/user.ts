@@ -44,10 +44,15 @@ export interface CreateUserInput {
   role: UserRole;
 }
 
-/** PUT /api/admin/accounts/{id}는 name만 받으므로, role은 별도의 PATCH .../role 호출로 처리합니다. */
+/** 수정(이름): PATCH /api/admin/accounts/{id} — name만. */
 export interface UpdateUserInput {
   id: number;
   name: string;
+}
+
+/** 권한 변경: PATCH /api/admin/accounts/{id}/role — role만. (수정과 별개 API) */
+export interface ChangeUserRoleInput {
+  id: number;
   role: UserRole;
 }
 
