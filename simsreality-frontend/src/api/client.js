@@ -2,8 +2,9 @@ import axios from 'axios';
 import { getAccessToken, clearAccessToken } from './auth/tokenStore';
 import { refreshAccessToken } from './auth/refresh';
 
+// 백엔드 오리진(BASE). 엔드포인트 상수들이 '/api/...' 전체 경로를 포함한다.
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
+  baseURL: import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8283',
   timeout: 30000,
   // refresh_token(HttpOnly 쿠키)을 reissue/logout 호출에 함께 보내기 위함.
   withCredentials: true,
