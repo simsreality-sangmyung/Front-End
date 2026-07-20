@@ -26,19 +26,6 @@ function mapSortToApi(sort: UserSortOption): string[] {
   }
 }
 
-/**
- * GET /api/admin/accounts/search 검색 조건은 email 또는 id입니다 (loginId 제거됨).
- * 검색어가 숫자로만 구성되면 id 파라미터로, 그 외에는 email 파라미터로 보냅니다.
- */
-function buildAccountSearchParam(
-  keyword: string,
-): { id: number } | { email: string } {
-  if (/^\d+$/.test(keyword)) {
-    return { id: Number(keyword) };
-  }
-  return { email: keyword };
-}
-
 async function fetchAccountPage(
   params: UserSearchParams,
 ): Promise<PageResponseAccountResponse> {
@@ -57,8 +44,9 @@ async function fetchAccountPage(
     sort,
   };
 
+  // BE 통합 검색: keyword 하나로 이름·이메일·ID 부분일치 검색.
   if (keyword) {
-    Object.assign(queryParams, buildAccountSearchParam(keyword));
+    queryParams.keyword = keyword;
   }
 
   const response = await client.get<ApiResponse<PageResponseAccountResponse>>(

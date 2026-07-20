@@ -12,6 +12,9 @@ const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // 배열 파라미터를 sort[]=a 가 아니라 sort=a&sort=b 로 직렬화한다.
+  // Spring 의 Pageable(sort=필드,방향)이 대괄호 형식을 인식하지 못해 정렬이 무시되던 문제 방지.
+  paramsSerializer: { indexes: null },
 });
 
 client.interceptors.request.use((config) => {
