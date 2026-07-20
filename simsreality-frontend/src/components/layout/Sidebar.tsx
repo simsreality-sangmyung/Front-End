@@ -15,10 +15,10 @@ function Sidebar() {
       <div className="border-b border-white/8 p-5">
         <div className="flex items-center gap-2.5">
           <Link
-            to="/"
+            to="/dashboard"
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#00d4ff]/30 bg-[#00d4ff]/10 transition-colors hover:bg-[#00d4ff]/20"
-            aria-label="메인 랜딩페이지로 이동"
-            title="홈으로"
+            aria-label="대시보드로 이동"
+            title="대시보드"
           >
             <Globe className="h-4 w-4 text-[#00d4ff]" />
           </Link>
