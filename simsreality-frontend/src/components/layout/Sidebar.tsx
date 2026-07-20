@@ -1,5 +1,6 @@
 import { Cpu, Globe, LayoutDashboard, LogOut, Settings, Users } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
+import { USER_DASHBOARD_URL } from '../../navigation/externalLinks';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: '대시보드', icon: LayoutDashboard },
@@ -53,13 +54,13 @@ function Sidebar() {
       </nav>
 
       <div className="space-y-1 border-t border-white/8 p-4">
-        <NavLink
-          to="/my-twins"
+        <a
+          href={USER_DASHBOARD_URL}
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-['Rajdhani',sans-serif] text-sm text-white/40 transition-all hover:bg-white/5 hover:text-white"
         >
           <LogOut className="h-4 w-4" />
           사용자 화면으로
-        </NavLink>
+        </a>
       </div>
     </aside>
   );
