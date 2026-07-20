@@ -76,7 +76,7 @@ function TwinRegisterModal({
     const trimmedPlace = place.trim();
     const trimmedDescription = description.trim();
 
-    // 썸네일 이미지를 제외한 모든 항목은 필수입니다.
+    // 썸네일 이미지와 담당자를 제외한 모든 항목은 필수입니다.
     if (!trimmedTitle) {
       setError('트윈 이름을 입력해주세요.');
       return;
@@ -87,10 +87,6 @@ function TwinRegisterModal({
     }
     if (!trimmedDescription) {
       setError('설명을 입력해주세요.');
-      return;
-    }
-    if (managerId === null) {
-      setError('담당자를 선택해주세요.');
       return;
     }
     if (!modelFile) {
