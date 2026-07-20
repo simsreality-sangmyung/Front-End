@@ -86,7 +86,6 @@ export interface CreateAdminItemInput {
   managerId: number | null;
   imageFile: File | null;
   executableFile: File | null;
-  threeJsFile: File | null;
   modelFile: File | null;
 }
 
@@ -148,7 +147,6 @@ export interface UpdateAdminItemInput {
   /** 파일은 새로 선택했을 때만 전송하며, 생략하면 서버가 기존 파일을 유지합니다. */
   imageFile?: File | null;
   executableFile?: File | null;
-  threeJsFile?: File | null;
   modelFile?: File | null;
 }
 

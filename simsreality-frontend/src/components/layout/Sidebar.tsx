@@ -1,5 +1,5 @@
-import { Cpu, Globe, LayoutDashboard, LogOut, Settings, Users } from 'lucide-react';
-import { Link, NavLink } from 'react-router-dom';
+import { Cpu, Globe, LayoutDashboard, Settings, Users } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import { USER_DASHBOARD_URL } from '../../navigation/externalLinks';
 
 const NAV_ITEMS = [
@@ -14,14 +14,14 @@ function Sidebar() {
     <aside className="sticky top-0 flex min-h-screen w-56 shrink-0 flex-col border-r border-white/8 bg-white/2">
       <div className="border-b border-white/8 p-5">
         <div className="flex items-center gap-2.5">
-          <Link
-            to="/dashboard"
+          <a
+            href={USER_DASHBOARD_URL}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#00d4ff]/30 bg-[#00d4ff]/10 transition-colors hover:bg-[#00d4ff]/20"
-            aria-label="대시보드로 이동"
-            title="대시보드"
+            aria-label="사용자 페이지로 이동"
+            title="사용자 페이지"
           >
             <Globe className="h-4 w-4 text-[#00d4ff]" />
-          </Link>
+          </a>
           <span className="font-['Rajdhani',sans-serif] text-base font-bold tracking-widest text-[#00d4ff]">
             TWIN<span className="text-white">OS</span>
           </span>
@@ -52,16 +52,6 @@ function Sidebar() {
           </NavLink>
         ))}
       </nav>
-
-      <div className="space-y-1 border-t border-white/8 p-4">
-        <a
-          href={USER_DASHBOARD_URL}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-['Rajdhani',sans-serif] text-sm text-white/40 transition-all hover:bg-white/5 hover:text-white"
-        >
-          <LogOut className="h-4 w-4" />
-          사용자 화면으로
-        </a>
-      </div>
     </aside>
   );
 }

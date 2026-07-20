@@ -36,9 +36,6 @@ export function buildCreateAdminItemFormData(
   if (input.executableFile) {
     formData.append('executableFile', input.executableFile);
   }
-  if (input.threeJsFile) {
-    formData.append('threeJs', input.threeJsFile);
-  }
   if (input.modelFile) {
     formData.append('model', input.modelFile);
   }

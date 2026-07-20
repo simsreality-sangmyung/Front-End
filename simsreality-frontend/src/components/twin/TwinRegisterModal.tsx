@@ -12,15 +12,12 @@ import {
   getImageExtensionLabel,
   getModelFileExtensionLabel,
   getRegisterExecutableExtensionLabel,
-  getRegisterThreeJsExtensionLabel,
   IMAGE_ACCEPT,
   isValidImageFile,
   isValidModelFile,
   isValidRegisterExecutableFile,
-  isValidThreeJsFile,
   MODEL_FILE_ACCEPT,
   REGISTER_EXECUTABLE_ACCEPT,
-  REGISTER_THREEJS_ACCEPT,
 } from '../../utils/fileValidation';
 
 interface TwinRegisterModalProps {
@@ -68,7 +65,6 @@ function TwinRegisterModal({
   const [managerId, setManagerId] = useState<number | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [executableFile, setExecutableFile] = useState<File | null>(null);
-  const [threeJsFile, setThreeJsFile] = useState<File | null>(null);
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
@@ -77,28 +73,45 @@ function TwinRegisterModal({
     setError('');
 
     const trimmedTitle = title.trim();
+    const trimmedPlace = place.trim();
+    const trimmedDescription = description.trim();
 
+    // 썸네일 이미지를 제외한 모든 항목은 필수입니다.
     if (!trimmedTitle) {
-      setError('제목을 입력해주세요.');
+      setError('트윈 이름을 입력해주세요.');
+      return;
+    }
+    if (!trimmedPlace) {
+      setError('위치(건물명)를 입력해주세요.');
+      return;
+    }
+    if (!trimmedDescription) {
+      setError('설명을 입력해주세요.');
+      return;
+    }
+    if (managerId === null) {
+      setError('담당자를 선택해주세요.');
+      return;
+    }
+    if (!modelFile) {
+      setError('3D 모델링 파일을 선택해주세요.');
+      return;
+    }
+    if (!executableFile) {
+      setError('실행파일을 선택해주세요.');
       return;
     }
     if (imageFile && !isValidImageFile(imageFile)) {
       setError(`대표 이미지는 ${getImageExtensionLabel()} 파일만 업로드할 수 있습니다.`);
       return;
     }
-    if (executableFile && !isValidRegisterExecutableFile(executableFile)) {
+    if (!isValidRegisterExecutableFile(executableFile)) {
       setError(
         `실행파일은 .${getRegisterExecutableExtensionLabel()} 형식만 업로드할 수 있습니다.`,
       );
       return;
     }
-    if (threeJsFile && !isValidThreeJsFile(threeJsFile)) {
-      setError(
-        `Three.js 구성 파일은 .${getRegisterThreeJsExtensionLabel()} 형식만 업로드할 수 있습니다.`,
-      );
-      return;
-    }
-    if (modelFile && !isValidModelFile(modelFile)) {
+    if (!isValidModelFile(modelFile)) {
       setError(
         `3D 모델링 파일은 .${getModelFileExtensionLabel()} 형식만 업로드할 수 있습니다.`,
       );
@@ -107,13 +120,12 @@ function TwinRegisterModal({
 
     onSubmit({
       title: trimmedTitle,
-      place: place.trim(),
-      description: description.trim(),
+      place: trimmedPlace,
+      description: trimmedDescription,
       category,
       managerId,
       imageFile,
       executableFile,
-      threeJsFile,
       modelFile,
     });
   };
@@ -243,22 +255,6 @@ function TwinRegisterModal({
                 disabled={isSubmitting}
               />
               {renderFileName(executableFile)}
-            </label>
-
-            <label className="block col-span-2">
-              <span className={LABEL_CLASS}>
-                Three.js 구성 파일 (.{getRegisterThreeJsExtensionLabel()})
-              </span>
-              <input
-                className={FILE_INPUT_CLASS}
-                type="file"
-                accept={REGISTER_THREEJS_ACCEPT}
-                onChange={(event) =>
-                  setThreeJsFile(event.target.files?.[0] ?? null)
-                }
-                disabled={isSubmitting}
-              />
-              {renderFileName(threeJsFile)}
             </label>
 
             <label className="block col-span-2">

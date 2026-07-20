@@ -12,15 +12,12 @@ import {
   getImageExtensionLabel,
   getModelFileExtensionLabel,
   getRegisterExecutableExtensionLabel,
-  getRegisterThreeJsExtensionLabel,
   IMAGE_ACCEPT,
   isValidImageFile,
   isValidModelFile,
   isValidRegisterExecutableFile,
-  isValidThreeJsFile,
   MODEL_FILE_ACCEPT,
   REGISTER_EXECUTABLE_ACCEPT,
-  REGISTER_THREEJS_ACCEPT,
 } from '../../utils/fileValidation';
 import { useTwinDetail } from '../../hooks/useTwinDetail';
 import ManagerSelectField from './ManagerSelectField';
@@ -38,7 +35,6 @@ interface AdminEditFormProps {
     status: TwinStatus;
     imageFile: File | null;
     executableFile: File | null;
-    threeJsFile: File | null;
     modelFile: File | null;
   }) => void;
   onCancel: () => void;
@@ -121,7 +117,6 @@ function EditFormFields({
   // 파일은 새로 교체할 때만 선택. 미선택 시 서버가 기존 파일을 유지한다.
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [executableFile, setExecutableFile] = useState<File | null>(null);
-  const [threeJsFile, setThreeJsFile] = useState<File | null>(null);
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
@@ -149,10 +144,6 @@ function EditFormFields({
       setError(`실행파일은 .${getRegisterExecutableExtensionLabel()} 형식만 업로드할 수 있습니다.`);
       return;
     }
-    if (threeJsFile && !isValidThreeJsFile(threeJsFile)) {
-      setError(`Three.js 구성 파일은 .${getRegisterThreeJsExtensionLabel()} 형식만 업로드할 수 있습니다.`);
-      return;
-    }
     if (modelFile && !isValidModelFile(modelFile)) {
       setError(`3D 모델링 파일은 .${getModelFileExtensionLabel()} 형식만 업로드할 수 있습니다.`);
       return;
@@ -168,7 +159,6 @@ function EditFormFields({
       status,
       imageFile,
       executableFile,
-      threeJsFile,
       modelFile,
     });
   };
@@ -327,18 +317,6 @@ function EditFormFields({
               disabled={isSubmitting}
             />
             {renderFileState(executableFile, detail?.executableFileName ?? null)}
-          </label>
-
-          <label className="block col-span-2">
-            <span className={LABEL_CLASS}>Three.js 구성 파일</span>
-            <input
-              className={FILE_INPUT_CLASS}
-              type="file"
-              accept={REGISTER_THREEJS_ACCEPT}
-              onChange={(event) => setThreeJsFile(event.target.files?.[0] ?? null)}
-              disabled={isSubmitting}
-            />
-            {renderFileState(threeJsFile, null)}
           </label>
         </div>
 

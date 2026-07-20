@@ -1,14 +1,7 @@
 /**
  * 허용 확장자 — Backend/Three.js 협의 후 이 배열만 수정하면 됩니다.
  */
-export const MODEL_FILE_EXTENSIONS = [
-  'glb',
-  'gltf',
-  'obj',
-  'fbx',
-  'zip',
-  '7z',
-] as const;
+export const MODEL_FILE_EXTENSIONS = ['fbx'] as const;
 
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png'];
 
@@ -17,9 +10,6 @@ const LEGACY_EXECUTABLE_EXTENSIONS = ['zip', '7zip', '7z'];
 
 /** 디지털트윈 등록 API(executableFile 필드) 허용 확장자 */
 export const REGISTER_EXECUTABLE_EXTENSIONS = ['zip', '7z'] as const;
-
-/** 디지털트윈 등록 API(threeJs 필드) 허용 확장자 */
-export const REGISTER_THREEJS_EXTENSIONS = ['js', 'json', 'zip', '7z'] as const;
 
 function getExtension(fileName: string): string {
   return fileName.split('.').pop()?.toLowerCase() ?? '';
@@ -50,13 +40,6 @@ export function isValidRegisterExecutableFile(file: File): boolean {
   );
 }
 
-/** 디지털트윈 등록 API — threeJs 필드 검증 (.js, .json, .zip, .7z) */
-export function isValidThreeJsFile(file: File): boolean {
-  return REGISTER_THREEJS_EXTENSIONS.includes(
-    getExtension(file.name) as (typeof REGISTER_THREEJS_EXTENSIONS)[number],
-  );
-}
-
 export const IMAGE_ACCEPT = '.jpg,.jpeg,.png,image/jpeg,image/png';
 
 export const MODEL_FILE_ACCEPT = MODEL_FILE_EXTENSIONS.map((ext) => `.${ext}`).join(
@@ -71,11 +54,6 @@ export const REGISTER_EXECUTABLE_ACCEPT = REGISTER_EXECUTABLE_EXTENSIONS.map(
   (ext) => `.${ext}`,
 ).join(',');
 
-/** 디지털트윈 등록 API — threeJs 필드 accept */
-export const REGISTER_THREEJS_ACCEPT = REGISTER_THREEJS_EXTENSIONS.map(
-  (ext) => `.${ext}`,
-).join(',');
-
 export function getModelFileExtensionLabel(): string {
   return MODEL_FILE_EXTENSIONS.join(', .');
 }
@@ -86,8 +64,4 @@ export function getImageExtensionLabel(): string {
 
 export function getRegisterExecutableExtensionLabel(): string {
   return REGISTER_EXECUTABLE_EXTENSIONS.join(', .');
-}
-
-export function getRegisterThreeJsExtensionLabel(): string {
-  return REGISTER_THREEJS_EXTENSIONS.join(', .');
 }
